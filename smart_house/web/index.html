@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Smart House — власні вимірювання</title>
+<style>
+:root{font-family:system-ui,sans-serif;color:#17324d;background:#f1f5f9}*{box-sizing:border-box}body{margin:0}header{background:#163a5f;color:white;padding:24px max(20px,calc((100vw - 1180px)/2))}header p{color:#c8deee;margin-bottom:0}h1{font-size:1.6rem;margin:0}main{max-width:1180px;margin:24px auto;padding:0 16px}section{background:white;border:1px solid #d6e2ec;border-radius:12px;padding:22px;margin-bottom:20px}h2{font-size:1.2rem;margin-top:0}button,.download{border:0;border-radius:7px;background:#17617b;color:white;padding:10px 15px;cursor:pointer;font:inherit;display:inline-block;text-decoration:none}button.secondary{background:#e5edf4;color:#17324d}button{max-width:100%;overflow-wrap:anywhere}button:disabled{opacity:.45;cursor:wait}input{min-width:0;font:inherit;max-width:100%;padding:8px;border:1px solid #b7cbd8;border-radius:6px}label{max-width:100%;display:inline-flex;gap:8px;align-items:center;margin:8px 12px 8px 0}.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0}.hint{font-size:.9rem;color:#526b7b}#status{white-space:pre-wrap;min-height:28px;font-weight:600}#status.error{color:#a32727}#status.ok{color:#176342}.scroll{overflow:auto;max-height:480px}table{border-collapse:collapse;width:100%;font-size:.9rem}th,td{padding:10px;border-bottom:1px solid #dde7ed;text-align:left;vertical-align:top}th{background:#f3f7fa;position:sticky;top:0}ul{padding-left:22px}.messages{max-height:230px;overflow:auto}.badge{display:inline-block;padding:3px 8px;border-radius:5px;background:#e6f1f4}details{margin:6px 0}pre{white-space:pre-wrap;word-break:break-word;font-size:.8rem}canvas{max-width:100%;width:100%;height:230px}a{color:#17617b}.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}@media(max-width:760px){.grid{grid-template-columns:1fr}section{padding:16px}}button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #edb949;outline-offset:3px}
+</style>
+</head>
+<body>
+<header><h1>Smart House · Власні вимірювання</h1><p>Завантаження показників, зрозумілі рекомендації та перевірка моделі</p></header>
+<main>
+<div id="status" role="status" aria-live="polite"></div>
+<section>
+<h2>1. Завантажте та перевірте файл</h2>
+<p>JSON або текстова таблиця CSV/TXT з комами. Обов’язкові поля: <code>timestamp</code>, <code>temperature_c</code>, <code>humidity_pct</code>.</p>
+<p class="hint">До 5 МіБ і 5000 записів. JSON: один об’єкт або масив. TXT/CSV: заголовок і рядки з числами через крапку. Невідомі поля та некоректні числа відхиляються.</p>
+<label for="file">Файл <input id="file" type="file" accept=".json,.csv,.txt"></label>
+<div class="actions"><button id="validate">Перевірити файл</button><button id="import" disabled>Зберегти та отримати рекомендації</button><button class="secondary" id="sample">Завантажити приклад JSON</button></div>
+<div id="validation" class="messages" aria-live="polite"></div>
+<p class="hint">Перевірка не зберігає дані. Імпорт зберігає всі записи разом з результатами в історії. Модель не перенавчається. Пристрої фізично не перемикаються.</p>
+</section>
+<section id="results" hidden>
+<h2>2. Показники та рекомендації <span id="count" class="badge"></span></h2>
+<p class="hint">Відсутні показники замінено типовими значеннями. Зовнішня погода припускається: 15 °C, 60% вологості, 50% хмарності, без вітру та опадів. Записи аналізуються незалежно. Правила пояснюють свої зміни; причини Q-оцінки нейромережі не інтерпретуються.</p>
+<div class="actions"><button id="download">Завантажити результат JSON</button><label>Графік <select id="metric"><option value="temperature_c">Температура, °C</option><option value="humidity_pct">Вологість, %</option><option value="co2_ppm">CO₂, ppm</option></select></label></div>
+<canvas id="chart" width="1040" height="230" role="img" aria-label="Графік вимірювань у порядку файлу; числові значення наведені в таблиці"></canvas>
+<div class="scroll"><table><thead><tr><th>Час</th><th>°C / % / CO₂</th><th>Рекомендації моделі + правила</th><th>Прості правила</th><th>Пояснення</th></tr></thead><tbody id="rows"></tbody></table></div>
+<p class="hint" id="table-note"></p>
+</section>
+<section>
+<h2>3. Оцінка якості: модель проти детермінованої системи</h2>
+<p>Обидві системи отримують однакові початкові умови, погоду й випадкові збурення. Порівнюємо модель із правилами безпеки та простий термостат із тими самими правилами безпеки.</p>
+<p class="hint">Це окремі симуляційні сценарії, а не оцінка економії за завантаженим файлом. Для фактичних даних невідомі наслідки альтернативних дій.</p>
+<label>Епізоди <input id="episodes" type="number" min="1" max="20" value="5"></label>
+<label>Кроки (10 хв) <input id="steps" type="number" min="1" max="144" value="144"></label>
+<label>Seed <input id="seed" type="number" min="0" max="4294967275" value="42"></label>
+<div class="actions"><button id="evaluate">Порівняти системи</button><button id="download-evaluation" class="secondary" hidden>Завантажити оцінку JSON</button></div>
+<div id="evaluation" class="scroll" aria-live="polite"></div>
+</section>
+<section><h2>Історія</h2><div class="actions"><button id="refresh" class="secondary">Оновити історію</button></div><div class="grid"><div><h3>Імпорти</h3><div id="history"></div></div><div><h3>Оцінки моделі</h3><div id="evaluations"></div></div></div><p class="hint">Останні 100 імпортів і оцінок. Попередні записи зберігаються в базі; повторне завантаження створює новий імпорт.</p></section>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+let selected=null,current=null,currentEvaluation=null,busy=false;
+function node(tag,text){const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n;}
+function message(text,error=false){$('status').textContent=text;$('status').className=error?'error':'ok';}
+function controls(){for(const id of ['validate','evaluate','refresh','file'])$(id).disabled=busy;$('import').disabled=busy||!selected;}
+async function task(fn){if(busy)return;busy=true;controls();try{await fn();}catch(e){message(e.message,true);if(e.report)showValidation(e.report);}finally{busy=false;controls();}}
+async function api(path,body){const response=await fetch(path,body===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const data=await response.json();if(!response.ok){const error=new Error(data.error||'Помилка запиту');error.report=data.validation;throw error;}return data;}
+function download(name,data){const a=node('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
+function showValidation(report){const box=$('validation');box.replaceChildren(node('p',`${report.valid?'Файл коректний':'Файл містить помилки'} · записів: ${report.count} · помилок: ${report.errors.length} · попереджень: ${report.warnings.length}`));for(const [label,list] of [['Помилка',report.errors],['Попередження',report.warnings]]){const ul=node('ul');for(const item of list.slice(0,100))ul.append(node('li',`${label}${item.record?' · запис '+item.record:''}: ${item.message}`));box.append(ul);if(list.length>100)box.append(node('p','Показано перші 100 повідомлень. Повний звіт можна завантажити.'));}const b=node('button','Завантажити звіт перевірки');b.className='secondary';b.onclick=()=>download('validation.json',report);box.append(b);if(report.preview&&report.preview.length){const detail=node('details'),wrap=node('div'),table=node('table'),header=node('tr');detail.append(node('summary','Попередній перегляд: перші 10 коректних записів'));wrap.className='scroll';for(const name of ['Час','°C','Вологість, %','CO₂, ppm'])header.append(node('th',name));table.append(header);for(const r of report.preview){const row=node('tr');for(const v of [r.timestamp,r.temperature_c,r.humidity_pct,r.co2_ppm])row.append(node('td',String(v)));table.append(row);}wrap.append(table);detail.append(wrap);box.append(detail);}}
+$('file').onchange=()=>{selected=null;controls();$('validation').replaceChildren();};
+$('validate').onclick=()=>task(async()=>{selected=null;const file=$('file').files[0];if(!file)throw new Error('Оберіть файл.');if(file.size>5*1024*1024)throw new Error('Файл перевищує 5 МіБ.');const text=new TextDecoder('utf-8',{fatal:true}).decode(await file.arrayBuffer());const body={filename:file.name,text};const report=await api('/api/validate',body);showValidation(report);if(report.valid)selected=body;message(report.valid?'Перевірку завершено. Можна зберегти дані.':'Виправте помилки й оберіть файл повторно.',!report.valid);});
+$('import').onclick=()=>task(async()=>{const result=await api('/api/import',selected);showImport(result);selected=null;await refresh();message('Вимірювання та рекомендації збережено в історії.');});
+$('sample').onclick=()=>download('readings.json',[{timestamp:'2026-10-23T08:00:00+03:00',temperature_c:22,humidity_pct:45,co2_ppm:1800,total_occupants:2}]);
+const hvac=['вимкнено','слабкий обігрів','сильний обігрів','слабке охолодження','сильне охолодження'];
+function deviceText(d){return `HVAC: ${hvac[d.hvac_mode]}; вентиляція: ${d.ventilation}; очищувач: ${d.air_purifier}; вологість: ${['вимкнено','зволоження','осушення'][d.humidifier_mode]}; робот: ${d.cleaner_bot?'працює':'вимкнено'}`;}
+function showImport(result){current=result;$('results').hidden=false;$('count').textContent=result.count+' записів';$('rows').replaceChildren();for(const r of result.readings.slice(0,200)){const tr=node('tr');tr.append(node('td',r.timestamp),node('td',`${r.indoor.temperature_c} / ${r.indoor.humidity_pct} / ${r.indoor.co2_ppm}`),node('td',deviceText(r.recommended_devices)),node('td',deviceText(r.deterministic_devices)));const cell=node('td');for(const e of r.explanations){const detail=node('details');detail.append(node('summary',e.source==='model'?'Рішення моделі':`${e.source==='teacher'?'Контролер · ':''}${e.stage} · ${e.field}`),node('p',e.reason));if(e.source!=='model')detail.append(node('pre',JSON.stringify(e.before)+' → '+JSON.stringify(e.after)));cell.append(detail);}const detail=node('details');detail.append(node('summary','Повні режими пристроїв'),node('pre',JSON.stringify(r.recommended_devices,null,2)));cell.append(detail);tr.append(cell);$('rows').append(tr);}$('table-note').textContent=result.count>200?'Показано перші 200 записів. Повні дані — у JSON.':'';draw();}
+function draw(){if(!current)return;const c=$('chart'),ctx=c.getContext('2d'),metric=$('metric').value,all=current.readings.map(r=>r.indoor[metric]);const w=c.clientWidth,h=230,dpr=window.devicePixelRatio||1;c.width=w*dpr;c.height=h*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);const low=Math.min(...all),high=Math.max(...all),range=high-low||1;ctx.font='13px system-ui';ctx.fillStyle='#17324d';ctx.fillText(`${$('metric').selectedOptions[0].text}: ${low.toFixed(1)} … ${high.toFixed(1)}`,5,20);ctx.strokeStyle='#17617b';ctx.lineWidth=2;ctx.beginPath();all.forEach((v,i)=>{const x=20+i*(w-40)/Math.max(1,all.length-1),y=h-35-(v-low)/range*(h-80);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();if(all.length===1){ctx.beginPath();ctx.arc(20,h-35,4,0,Math.PI*2);ctx.fill();}ctx.fillText('Запис 1',5,h-10);ctx.fillText('Запис '+all.length,w-100,h-10);}
+window.addEventListener('resize',draw);
+$('metric').onchange=draw;$('download').onclick=()=>current&&download(`import-${current.id}.json`,current);
+function showEvaluation(data){currentEvaluation=data;$('download-evaluation').hidden=false;const box=$('evaluation');box.replaceChildren();const table=node('table'),head=node('tr');for(const h of ['Метрика','Модель + правила','Детермінована','Різниця (модель − правила)'])head.append(node('th',h));table.append(head);for(const [key,label] of [['avg_comfort','Комфорт, % ↑'],['energy_kwh','Енергія, кВт·год ↓'],['total_reward','Сумарна винагорода ↑'],['unsafe_steps','Кроки поза безпечними межами ↓']]){const row=node('tr');row.append(node('td',label));for(const v of [data.summary.model[key],data.summary.deterministic[key],data.delta_model_minus_deterministic[key]])row.append(node('td',v.toFixed(3)));table.append(row);}box.append(table,node('p',`Середнє за ${data.episodes} епізодами × ${data.steps_per_episode} кроків; seed ${data.seed}.`),node('p','Вищі комфорт/винагорода та нижчі енергія/небезпечні кроки кращі. Одна метрика не визначає переможця. Повні результати кожного сценарію та розкид різниць — у JSON. Результати описують симулятор, а не доведену економію в реальному будинку.'));}
+$('evaluate').onclick=()=>task(async()=>{message('Виконується порівняння…');const data=await api('/api/evaluate',{episodes:Number($('episodes').value),steps:Number($('steps').value),seed:Number($('seed').value)});showEvaluation(data);await refresh();message('Порівняння завершено й збережено.');});
+$('download-evaluation').onclick=()=>currentEvaluation&&download('evaluation.json',currentEvaluation);
+async function refresh(){const data=await api('/api/history');for(const [id,items,prefix,show] of [['history',data.imports,'/api/imports/',showImport],['evaluations',data.evaluations,'/api/evaluations/',showEvaluation]]){const box=$(id);box.replaceChildren();if(!items.length)box.append(node('p','Ще немає записів.'));for(const item of items){const row=node('p'),b=node('button',item.filename?`#${item.id} · ${item.filename} · ${item.count} записів`:`Оцінка #${item.id}`);b.className='secondary';b.onclick=()=>task(async()=>{show(await api(prefix+item.id));message('Відкрито збережений результат.');});row.append(b,node('small',' '+new Date(item.created_at).toLocaleString('uk-UA')));box.append(row);}}}
+$('refresh').onclick=()=>task(refresh);task(refresh);
+</script>
+</body></html>

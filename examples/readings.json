@@ -1,0 +1,4 @@
+[
+  {"timestamp": "2026-10-23T08:00:00+03:00", "temperature_c": 22.5, "humidity_pct": 45, "co2_ppm": 1800, "total_occupants": 2},
+  {"timestamp": "2026-10-23T08:10:00+03:00", "temperature_c": 23, "humidity_pct": 48, "co2_ppm": 900, "total_occupants": 2}
+]

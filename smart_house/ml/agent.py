@@ -170,19 +170,21 @@ class Transition:
     reward: float
     next_state: np.ndarray
     done: bool
+    demonstration: bool = False
 
 
 class PrioritizedReplayBuffer:
     """Simple uniform replay buffer (priority extension available)."""
 
-    def __init__(self, capacity: int = 50_000):
+    def __init__(self, capacity: int = 50_000, rng=None):
+        self._rng = rng or random.Random()
         self._buf: deque = deque(maxlen=capacity)
 
     def push(self, t: Transition):
         self._buf.append(t)
 
     def sample(self, batch_size: int) -> List[Transition]:
-        return random.sample(self._buf, min(batch_size, len(self._buf)))
+        return self._rng.sample(self._buf, min(batch_size, len(self._buf)))
 
     def __len__(self) -> int:
         return len(self._buf)
@@ -201,10 +203,11 @@ class RewardFunction:
       - rapid device switching (wear penalty)
     """
 
-    COMFORT_WEIGHT = 1.0
-    ENERGY_WEIGHT = 0.3
-    CLEAN_WEIGHT = 0.4
-    SWITCH_PENALTY = 0.05
+    VERSION = "comfort_safety_v2"
+    COMFORT_WEIGHT = 2.0
+    ENERGY_WEIGHT = 0.15
+    CLEAN_WEIGHT = 0.2
+    SWITCH_PENALTY = 0.03
 
     def __init__(self):
         self._prev_devices: Optional[DeviceState] = None
@@ -215,6 +218,16 @@ class RewardFunction:
 
         # Comfort: scaled comfort score to [-1, +1]
         reward += self.COMFORT_WEIGHT * (indoor.comfort_score / 50.0 - 1.0)
+
+        # Explicit physical deviations prevent energy savings from masking discomfort.
+        temp_gap = max(0.0, 19.0 - indoor.temperature_c, indoor.temperature_c - 25.0)
+        humidity_gap = max(0.0, 35.0 - indoor.humidity_pct, indoor.humidity_pct - 65.0)
+        reward -= 0.15 * temp_gap + 0.015 * humidity_gap
+        reward -= 0.3 * max(0.0, indoor.co2_ppm - 1000.0) / 1000.0
+        reward -= 0.2 * max(0.0, indoor.pm25_ugm3 - 35.0) / 35.0
+        if (indoor.temperature_c < 5 or indoor.temperature_c > 32
+                or indoor.co2_ppm > 1500 or indoor.pm25_ugm3 > 55):
+            reward -= 3.0
 
         # Energy penalty
         reward -= self.ENERGY_WEIGHT * indoor.power_consumption_kw
@@ -258,7 +271,14 @@ class SmartHomeDQNAgent:
     EPSILON_DECAY = 0.9995
 
     def __init__(self, state_dim: int = STATE_DIM, n_actions: int = N_ACTIONS,
-                 device: Optional[str] = None):
+                 device: Optional[str] = None, action_mode="legacy", seed=42):
+        from smart_house.ml.controller import RESIDUAL_ACTIONS
+        if action_mode not in {"legacy", "residual_v1"}:
+            raise ValueError("Unknown action mode")
+        self.action_mode = action_mode
+        self._rng = random.Random(seed)
+        if action_mode == "residual_v1":
+            n_actions = len(RESIDUAL_ACTIONS)
         self.device = torch.device(
             device if device else ("cuda" if torch.cuda.is_available() else "cpu")
         )
@@ -269,26 +289,26 @@ class SmartHomeDQNAgent:
         self.target_net.load_state_dict(self.policy_net.state_dict())
         self.target_net.eval()
 
-        self.optimizer = optim.AdamW(self.policy_net.parameters(), lr=self.LR)
+        self.optimizer = optim.AdamW(self.policy_net.parameters(), lr=3e-4 if action_mode == "residual_v1" else self.LR)
         self.loss_fn = nn.SmoothL1Loss()
-        self.replay = PrioritizedReplayBuffer()
+        self.replay = PrioritizedReplayBuffer(rng=self._rng)
         self.reward_fn = RewardFunction()
 
-        self.epsilon = self.EPSILON_START
+        self.epsilon = 0.2 if action_mode == "residual_v1" else self.EPSILON_START
         self.steps_done = 0
         self.losses: List[float] = []
         self.episode_rewards: List[float] = []
 
     def select_action(self, state: np.ndarray) -> int:
-        if random.random() < self.epsilon:
-            return random.randrange(self.n_actions)
+        if self.epsilon > 0 and self._rng.random() < self.epsilon:
+            return self._rng.randrange(self.n_actions)
         with torch.no_grad():
             s = torch.FloatTensor(state).unsqueeze(0).to(self.device)
             q = self.policy_net(s)
             return int(q.argmax(dim=1).item())
 
-    def store(self, state, action, reward, next_state, done):
-        self.replay.push(Transition(state, action, reward, next_state, done))
+    def store(self, state, action, reward, next_state, done, demonstration=False):
+        self.replay.push(Transition(state, action, reward, next_state, done, demonstration))
 
     def learn(self) -> Optional[float]:
         if len(self.replay) < self.BATCH_SIZE:
@@ -306,9 +326,14 @@ class SmartHomeDQNAgent:
         with torch.no_grad():
             best_actions = self.policy_net(next_states).argmax(dim=1, keepdim=True)
             next_q = self.target_net(next_states).gather(1, best_actions).squeeze()
-            target_q = rewards + self.GAMMA * next_q * (1 - dones)
+            target_q = rewards + (0.99 if self.action_mode == "residual_v1" else self.GAMMA) * next_q * (1 - dones)
 
         loss = self.loss_fn(current_q, target_q)
+        demonstrations = torch.tensor([t.demonstration for t in batch], dtype=torch.bool, device=self.device)
+        if demonstrations.any():
+            # Retain a small imitation anchor while RL learns useful corrections.
+            logits = self.policy_net(states[demonstrations])
+            loss = loss + 0.1 * nn.functional.cross_entropy(logits, actions[demonstrations].squeeze(1))
         self.optimizer.zero_grad()
         loss.backward()
         nn.utils.clip_grad_norm_(self.policy_net.parameters(), 1.0)
@@ -318,27 +343,70 @@ class SmartHomeDQNAgent:
         if self.steps_done % self.TARGET_UPDATE_FREQ == 0:
             self.target_net.load_state_dict(self.policy_net.state_dict())
 
-        self.epsilon = max(self.EPSILON_END, self.epsilon * self.EPSILON_DECAY)
+        self.epsilon = max(0.02 if self.action_mode == "residual_v1" else self.EPSILON_END,
+                           self.epsilon * self.EPSILON_DECAY)
         loss_val = float(loss.item())
         self.losses.append(loss_val)
         return loss_val
 
-    def save(self, path: str):
-        os.makedirs(os.path.dirname(path), exist_ok=True)
+    def decode_action(self, index, current, indoor, weather):
+        if self.action_mode == "residual_v1":
+            from smart_house.ml.controller import residual_devices
+            return residual_devices(index, indoor, weather)
+        return action_index_to_devices(index, current)
+
+    def imitate(self, states, actions, epochs=5):
+        """Behavior cloning of teacher rollouts, followed by a target-network sync."""
+        if not states or epochs < 1:
+            return []
+        x = torch.as_tensor(np.asarray(states), dtype=torch.float32, device=self.device)
+        y = torch.as_tensor(actions, dtype=torch.long, device=self.device)
+        losses = []
+        for _ in range(epochs):
+            order = torch.randperm(len(x), device=self.device)
+            for start in range(0, len(x), self.BATCH_SIZE):
+                indices = order[start:start + self.BATCH_SIZE]
+                loss = nn.functional.cross_entropy(self.policy_net(x[indices]), y[indices])
+                self.optimizer.zero_grad()
+                loss.backward()
+                nn.utils.clip_grad_norm_(self.policy_net.parameters(), 1.0)
+                self.optimizer.step()
+                losses.append(float(loss.item()))
+        self.target_net.load_state_dict(self.policy_net.state_dict())
+        return losses
+
+    def save(self, path: str, metadata=None):
+        from pathlib import Path
+        path = Path(path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        temporary = path.with_suffix(path.suffix + ".tmp")
         torch.save({
+            "schema_version": 2, "action_mode": self.action_mode,
+            "n_actions": self.n_actions, "reward_version": self.reward_fn.VERSION,
             "policy_state_dict": self.policy_net.state_dict(),
             "target_state_dict": self.target_net.state_dict(),
             "optimizer_state_dict": self.optimizer.state_dict(),
-            "epsilon": self.epsilon,
-            "steps_done": self.steps_done,
-        }, path)
+            "epsilon": self.epsilon, "steps_done": self.steps_done,
+            "rng_state": self._rng.getstate(), "metadata": metadata or {},
+        }, temporary)
+        os.replace(temporary, path)
 
     def load(self, path: str):
         if not os.path.exists(path):
             return
-        checkpoint = torch.load(path, map_location=self.device)
+        checkpoint = torch.load(path, map_location=self.device, weights_only=True)
+        mode = checkpoint.get("action_mode", "legacy")
+        from smart_house.ml.controller import RESIDUAL_ACTIONS
+        expected = len(RESIDUAL_ACTIONS) if mode == "residual_v1" else N_ACTIONS
+        if mode not in {"legacy", "residual_v1"} or checkpoint.get("n_actions", expected) != expected:
+            raise ValueError("Unsupported checkpoint action semantics")
+        if self.action_mode != mode or self.n_actions != expected:
+            self.__init__(device=str(self.device), action_mode=mode)
         self.policy_net.load_state_dict(checkpoint["policy_state_dict"])
         self.target_net.load_state_dict(checkpoint["target_state_dict"])
         self.optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
         self.epsilon = checkpoint.get("epsilon", self.EPSILON_END)
         self.steps_done = checkpoint.get("steps_done", 0)
+        if "rng_state" in checkpoint:
+            self._rng.setstate(checkpoint["rng_state"])
+        self.checkpoint_metadata = checkpoint.get("metadata", {})

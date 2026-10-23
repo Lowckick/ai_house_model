@@ -221,15 +221,18 @@ class IndoorPhysicsSimulator:
         "office": 500,
     }
 
-    def __init__(self, n_occupants: int = 2):
+    def __init__(self, n_occupants: int = 2, seed=None, start_time=None):
+        self._start_time = start_time
         self._occupancy_sim = OccupancySimulator(n_occupants)
-        self._rng = random.Random()
+        self._occupancy_sim._rng.seed(seed)
+        self._rng = random.Random(seed)
         self.state = IndoorState()
         self._step = 0
         self._cleaning_progress = 0.0
 
     def reset(self) -> IndoorState:
         self.state = IndoorState(
+            timestamp=self._start_time or datetime.datetime.now(),
             temperature_c=self._rng.uniform(18.0, 24.0),
             humidity_pct=self._rng.uniform(40.0, 60.0),
             co2_ppm=self._rng.uniform(400.0, 600.0),
@@ -242,7 +245,7 @@ class IndoorPhysicsSimulator:
 
     def step(self, weather: WeatherSnapshot, devices: DeviceState) -> IndoorState:
         dt = self.TIMESTEP_MINUTES / 60.0  # hours
-        h = datetime.datetime.now().hour
+        h = self.state.timestamp.hour if self._start_time else datetime.datetime.now().hour
 
         # -- Occupancy --
         occ, n_occ, activity = self._occupancy_sim.update(h)
@@ -271,7 +274,8 @@ class IndoorPhysicsSimulator:
         # -- Comfort score --
         self.state.comfort_score = self._compute_comfort()
 
-        self.state.timestamp = datetime.datetime.now()
+        self.state.timestamp = (self.state.timestamp + datetime.timedelta(minutes=self.TIMESTEP_MINUTES)
+                                if self._start_time else datetime.datetime.now())
         self._step += 1
         return self.state
 
@@ -428,7 +432,7 @@ class IndoorPhysicsSimulator:
         self.state.dust_level = round(min(100.0, dust + self._rng.gauss(0, 0.05)), 2)
 
         if devices.cleaner_bot == 1 and dirt < 1.0:
-            self.state.last_cleaned = datetime.datetime.now()
+            self.state.last_cleaned = self.state.timestamp if self._start_time else datetime.datetime.now()
 
     def _update_power(self, devices: DeviceState):
         kw = 0.0

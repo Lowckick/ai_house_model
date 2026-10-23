@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 
 from smart_house.environment.indoor_state import DeviceState
-from smart_house.ml.agent import action_index_to_devices, encode_state
+from smart_house.ml.agent import encode_state
 from smart_house.ml.trainer import Trainer
 
 
@@ -117,10 +117,17 @@ def render_dashboard_snapshot(path: str, step: int, indoor, devices, weather, re
     return path
 
 
-def generate_simulation_screenshots(output_dir: str = None, count: int = 4, use_api_weather: bool = False, steps: int = 144) -> List[str]:
+def generate_simulation_screenshots(output_dir: str = None, count: int = 4, use_api_weather: bool = False, steps: int = 144, model_path=None) -> List[str]:
     output_dir = output_dir or SCREENSHOT_DIR
     os.makedirs(output_dir, exist_ok=True)
-    trainer = Trainer(use_api_weather=use_api_weather)
+    from types import SimpleNamespace
+    from smart_house.analytics.comparison import load_agent
+    from smart_house.environment.indoor_state import IndoorPhysicsSimulator
+    from smart_house.environment.weather import WeatherProvider
+    from smart_house.ml.rule_layer import RuleLayer
+    trainer = SimpleNamespace(agent=load_agent(model_path or Trainer.MODEL_SAVE_PATH),
+                              physics=IndoorPhysicsSimulator(),
+                              weather_provider=WeatherProvider(use_api=use_api_weather), rule_layer=RuleLayer())
     trainer.agent.epsilon = 0.0
     indoor = trainer.physics.reset()
     devices = DeviceState()
@@ -135,7 +142,7 @@ def generate_simulation_screenshots(output_dir: str = None, count: int = 4, use_
     for step in range(steps):
         state = encode_state(indoor, weather, devices)
         action_idx = trainer.agent.select_action(state)
-        raw_devices = action_index_to_devices(action_idx, devices)
+        raw_devices = trainer.agent.decode_action(action_idx, devices, indoor, weather)
         devices = trainer.rule_layer.apply(raw_devices, indoor, weather)
         if step % 30 == 0:
             weather = trainer.weather_provider.get()

@@ -320,8 +320,12 @@ class LiveDashboard:
         trainer.progress_callback = callback
 
         with Live(self.build_layout(), refresh_per_second=4, screen=True) as live:
+            errors = []
             def train_thread():
-                trainer.train(n_episodes=n_episodes, verbose=False)
+                try:
+                    trainer.train(n_episodes=n_episodes, verbose=False)
+                except Exception as exc:
+                    errors.append(exc)
 
             t = threading.Thread(target=train_thread, daemon=True)
             t.start()
@@ -332,4 +336,6 @@ class LiveDashboard:
 
             live.update(self.build_layout())
 
+        if errors:
+            raise errors[0]
         console.print("\n[bold green]Training complete![/bold green]")

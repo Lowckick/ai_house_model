@@ -41,26 +41,39 @@ class RuleLayer:
               weather: WeatherSnapshot) -> DeviceState:
         """Return a (possibly modified) DeviceState after applying rules."""
 
-        # Work on a copy
-        d = DeviceState(
-            hvac_mode=devices.hvac_mode,
-            lights=dict(devices.lights),
-            blinds=dict(devices.blinds),
-            air_purifier=devices.air_purifier,
-            humidifier_mode=devices.humidifier_mode,
-            cleaner_bot=devices.cleaner_bot,
-            ventilation=devices.ventilation,
-            security=devices.security,
-            curtains_closed=dict(devices.curtains_closed),
-        )
+        return self.apply_with_explanations(devices, indoor, weather)[0]
 
-        self._apply_safety_rules(d, indoor, weather)
-        self._apply_smart_lights(d, indoor, weather)
-        self._apply_smart_blinds(d, indoor, weather)
-        self._apply_smart_security(d, indoor)
-        self._apply_sleep_mode(d, indoor)
-
-        return d
+    def apply_with_explanations(self, devices, indoor, weather):
+        """Record actual rule changes; never infer reasons for neural Q-values."""
+        from copy import deepcopy
+        from dataclasses import asdict
+        d = deepcopy(devices)
+        explanations = []
+        stages = [
+            (self._apply_smart_lights, 'lighting', 'Освітлення: присутність, активність і дефіцит світла в кімнаті.'),
+            (self._apply_smart_blinds, 'blinds', 'Жалюзі: температура, сонячне світло та приватність під час сну/вночі.'),
+            (lambda d, i, w: self._apply_smart_security(d, i), 'security', 'Охорона: кількість мешканців та режим сну.'),
+            (lambda d, i, w: self._apply_sleep_mode(d, i), 'sleep', 'Режим сну: тихіша вентиляція та прохолода.'),
+            # Safety must win over quiet/sleep preferences, including high CO2/temperature.
+            (self._apply_safety_rules, 'safety', None),
+        ]
+        reasons = {
+            'hvac_mode': f'Температура {indoor.temperature_c:g} °C: безпечний діапазон 5–32 °C.',
+            'ventilation': f'CO₂ {indoor.co2_ppm:g} ppm > 1500: вентиляція щонайменше 2.',
+            'cleaner_bot': ('Під час сну робот вимкнений.' if indoor.occupant_activity == 'sleeping'
+                            else f'Забруднення {indoor.dirt_level:g}% > 60%: увімкнути прибирання.'),
+            'air_purifier': f'PM2.5 {indoor.pm25_ugm3:g} мкг/м³ > 55: очищувач щонайменше 2.',
+            'humidifier_mode': f'Вологість {indoor.humidity_pct:g}% поза діапазоном 25–75%: корекція вологості.',
+        }
+        for apply, stage, reason in stages:
+            before = asdict(d)
+            apply(d, indoor, weather)
+            for field, value in asdict(d).items():
+                if before[field] != value:
+                    explanations.append({'source': 'rule', 'stage': stage, 'field': field,
+                                         'before': before[field], 'after': value,
+                                         'reason': reason or reasons[field]})
+        return d, explanations
 
     # ------------------------------------------------------------------
     # Safety rules (hard overrides)
