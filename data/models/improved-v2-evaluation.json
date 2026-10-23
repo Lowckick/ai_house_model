@@ -1,0 +1,2158 @@
+{
+  "protocol_version": 2,
+  "selected_seed": 42,
+  "selected_checkpoint": "data/user/training/improved-v2-20261023/best.pt",
+  "selected_sha256": "c57f75d2594db8b7d9499a17e12d76f51a56155945c36dc1734d2ffb817ebd43",
+  "selection": "validation only: fewest unsafe steps, highest comfort, lowest energy, highest reward",
+  "runs": [
+    {
+      "seed": 42,
+      "best_episode": 0,
+      "checkpoint": "data/user/training/improved-v2-20261023/seed-42/best.pt",
+      "validation": {
+        "protocol_version": 2,
+        "split": "validation",
+        "action_mode": "residual_v1",
+        "reward_version": "comfort_safety_v2",
+        "episodes": 6,
+        "steps_per_episode": 144,
+        "seed": 10000,
+        "summary": {
+          "model": {
+            "avg_comfort": 76.59114583333333,
+            "energy_kwh": 28.172638888888887,
+            "total_reward": 49.612047619047615,
+            "unsafe_steps": 14.5
+          },
+          "deterministic": {
+            "avg_comfort": 76.59114583333333,
+            "energy_kwh": 28.172638888888887,
+            "total_reward": 49.612047619047615,
+            "unsafe_steps": 14.5
+          }
+        },
+        "delta_model_minus_deterministic": {
+          "avg_comfort": 0.0,
+          "energy_kwh": 0.0,
+          "total_reward": 0.0,
+          "unsafe_steps": 0.0
+        },
+        "paired_delta_stddev": {
+          "avg_comfort": 0.0,
+          "energy_kwh": 0.0,
+          "total_reward": 0.0,
+          "unsafe_steps": 0.0
+        },
+        "trials": [
+          {
+            "scenario": {
+              "split": "validation",
+              "index": 0,
+              "seed": 2598854614,
+              "start": "2025-01-07T06:00:00+00:00",
+              "occupants": 0,
+              "temperature_c": 26.108765301470797,
+              "humidity_pct": 30.541673462468673,
+              "co2_ppm": 1612.4744436499639,
+              "pm25_ugm3": 4.2695634354790695,
+              "dirt_level": 68.76944786851115,
+              "weather_offset_c": -3.867082857973616
+            },
+            "model": {
+              "avg_comfort": 54.938472222222224,
+              "energy_kwh": 26.96333333333333,
+              "total_reward": -128.02909,
+              "unsafe_steps": 3
+            },
+            "deterministic": {
+              "avg_comfort": 54.938472222222224,
+              "energy_kwh": 26.96333333333333,
+              "total_reward": -128.02909,
+              "unsafe_steps": 3
+            }
+          },
+          {
+            "scenario": {
+              "split": "validation",
+              "index": 1,
+              "seed": 3302553658,
+              "start": "2025-06-22T18:00:00+00:00",
+              "occupants": 4,
+              "temperature_c": 27.450786125726065,
+              "humidity_pct": 67.32960599443439,
+              "co2_ppm": 1134.538786910357,
+              "pm25_ugm3": 59.14463174810088,
+              "dirt_level": 61.28732906268164,
+              "weather_offset_c": 4.089570068351074
+            },
+            "model": {
+              "avg_comfort": 77.33715277777777,
+              "energy_kwh": 34.089166666666664,
+              "total_reward": 37.41397571428572,
+              "unsafe_steps": 22
+            },
+            "deterministic": {
+              "avg_comfort": 77.33715277777777,
+              "energy_kwh": 34.089166666666664,
+              "total_reward": 37.41397571428572,
+              "unsafe_steps": 22
+            }
+          },
+          {
+            "scenario": {
+              "split": "validation",
+              "index": 2,
+              "seed": 2076462372,
+              "start": "2025-11-04T06:00:00+00:00",
+              "occupants": 0,
+              "temperature_c": 26.753576697004416,
+              "humidity_pct": 77.57701572771094,
+              "co2_ppm": 1806.25933125669,
+              "pm25_ugm3": 25.197923669131022,
+              "dirt_level": 12.421357304515558,
+              "weather_offset_c": -2.0027479399470107
+            },
+            "model": {
+              "avg_comfort": 94.15826388888888,
+              "energy_kwh": 23.584999999999997,
+              "total_reward": 213.00432999999998,
+              "unsafe_steps": 11
+            },
+            "deterministic": {
+              "avg_comfort": 94.15826388888888,
+              "energy_kwh": 23.584999999999997,
+              "total_reward": 213.00432999999998,
+              "unsafe_steps": 11
+            }
+          },
+          {
+            "scenario": {
+              "split": "validation",
+              "index": 3,
+              "seed": 1461837951,
+              "start": "2025-04-11T06:00:00+00:00",
+              "occupants": 2,
+              "temperature_c": 22.729286712107697,
+              "humidity_pct": 30.811814968035165,
+              "co2_ppm": 2074.370200750638,
+              "pm25_ugm3": 18.23642307240943,
+              "dirt_level": 54.23174584258692,
+              "weather_offset_c": -1.3680121227290236
+            },
+            "model": {
+              "avg_comfort": 85.88868055555555,
+              "energy_kwh": 24.958333333333332,
+              "total_reward": 103.44750142857143,
+              "unsafe_steps": 28
+            },
+            "deterministic": {
+              "avg_comfort": 85.88868055555555,
+              "energy_kwh": 24.958333333333332,
+              "total_reward": 103.44750142857143,
+              "unsafe_steps": 28
+            }
+          },
+          {
+            "scenario": {
+              "split": "validation",
+              "index": 4,
+              "seed": 3803521113,
+              "start": "2025-09-20T18:00:00+00:00",
+              "occupants": 3,
+              "temperature_c": 23.38042429434022,
+              "humidity_pct": 74.94943003703233,
+              "co2_ppm": 1359.2916763956869,
+              "pm25_ugm3": 65.22111835013342,
+              "dirt_level": 54.51869863506737,
+              "weather_offset_c": 5.961815079656915
+            },
+            "model": {
+              "avg_comfort": 84.71909722222222,
+              "energy_kwh": 28.386666666666663,
+              "total_reward": 106.30715142857143,
+              "unsafe_steps": 23
+            },
+            "deterministic": {
+              "avg_comfort": 84.71909722222222,
+              "energy_kwh": 28.386666666666663,
+              "total_reward": 106.30715142857143,
+              "unsafe_steps": 23
+            }
+          },
+          {
+            "scenario": {
+              "split": "validation",
+              "index": 5,
+              "seed": 651043174,
+              "start": "2025-02-04T00:00:00+00:00",
+              "occupants": 3,
+              "temperature_c": 20.17099329798918,
+              "humidity_pct": 58.07438972524308,
+              "co2_ppm": 1411.144611020321,
+              "pm25_ugm3": 46.717032155613154,
+              "dirt_level": 54.130190188624994,
+              "weather_offset_c": 1.1926659772480939
+            },
+            "model": {
+              "avg_comfort": 62.505208333333336,
+              "energy_kwh": 31.05333333333333,
+              "total_reward": -34.471582857142856,
+              "unsafe_steps": 0
+            },
+            "deterministic": {
+              "avg_comfort": 62.505208333333336,
+              "energy_kwh": 31.05333333333333,
+              "total_reward": -34.471582857142856,
+              "unsafe_steps": 0
+            }
+          }
+        ],
+        "unsafe_thresholds": {
+          "temperature_c": [
+            5,
+            32
+          ],
+          "co2_ppm_max": 1500,
+          "pm25_ugm3_max": 55
+        },
+        "baseline": "HVAC heat below 20 C, cool above 24 C; ventilation above 1000 ppm CO2; purifier above 12 ug/m3 PM2.5; humidity target 40-60%; clean above 30% dirt. Shared lighting, blinds, security, sleep and final safety rules.",
+        "method": "Paired closed-loop simulation: identical initial states, weather, seeded physics/occupancy noise; 10-minute steps. Both controllers use the same final safety rules. No training. Higher comfort/reward and lower energy/unsafe steps are better. Results describe this simulator and these scenarios, not measured real-world savings."
+      },
+      "test": {
+        "protocol_version": 2,
+        "split": "test",
+        "action_mode": "residual_v1",
+        "reward_version": "comfort_safety_v2",
+        "episodes": 12,
+        "steps_per_episode": 144,
+        "seed": 20000,
+        "summary": {
+          "model": {
+            "avg_comfort": 84.5484837962963,
+            "energy_kwh": 23.900694444444444,
+            "total_reward": 155.7330011904762,
+            "unsafe_steps": 4.083333333333333
+          },
+          "deterministic": {
+            "avg_comfort": 84.5484837962963,
+            "energy_kwh": 23.900694444444444,
+            "total_reward": 155.7330011904762,
+            "unsafe_steps": 4.083333333333333
+          }
+        },
+        "delta_model_minus_deterministic": {
+          "avg_comfort": 0.0,
+          "energy_kwh": 0.0,
+          "total_reward": 0.0,
+          "unsafe_steps": 0.0
+        },
+        "paired_delta_stddev": {
+          "avg_comfort": 0.0,
+          "energy_kwh": 0.0,
+          "total_reward": 0.0,
+          "unsafe_steps": 0.0
+        },
+        "trials": [
+          {
+            "scenario": {
+              "split": "test",
+              "index": 0,
+              "seed": 3724362391,
+              "start": "2026-01-03T00:00:00+00:00",
+              "occupants": 3,
+              "temperature_c": 26.43851627524013,
+              "humidity_pct": 50.22300211260837,
+              "co2_ppm": 806.3682320497745,
+              "pm25_ugm3": 46.54097542442913,
+              "dirt_level": 25.841356070503515,
+              "weather_offset_c": 4.712604090567732
+            },
+            "model": {
+              "avg_comfort": 88.52333333333334,
+              "energy_kwh": 27.882499999999997,
+              "total_reward": 203.84528571428572,
+              "unsafe_steps": 0
+            },
+            "deterministic": {
+              "avg_comfort": 88.52333333333334,
+              "energy_kwh": 27.882499999999997,
+              "total_reward": 203.84528571428572,
+              "unsafe_steps": 0
+            }
+          },
+          {
+            "scenario": {
+              "split": "test",
+              "index": 1,
+              "seed": 2746779861,
+              "start": "2026-06-13T18:00:00+00:00",
+              "occupants": 3,
+              "temperature_c": 25.12043561566147,
+              "humidity_pct": 71.52243523400928,
+              "co2_ppm": 805.6826797343948,
+              "pm25_ugm3": 21.476198609679546,
+              "dirt_level": 45.56417893392155,
+              "weather_offset_c": -1.1681255891612157
+            },
+            "model": {
+              "avg_comfort": 87.65513888888889,
+              "energy_kwh": 26.605,
+              "total_reward": 199.22550999999999,
+              "unsafe_steps": 0
+            },
+            "deterministic": {
+              "avg_comfort": 87.65513888888889,
+              "energy_kwh": 26.605,
+              "total_reward": 199.22550999999999,
+              "unsafe_steps": 0
+            }
+          },
+          {
+            "scenario": {
+              "split": "test",
+              "index": 2,
+              "seed": 662577455,
+              "start": "2026-11-09T12:00:00+00:00",
+              "occupants": 3,
+              "temperature_c": 24.463809250407508,
+              "humidity_pct": 36.04860681768356,
+              "co2_ppm": 1385.2376247881898,
+              "pm25_ugm3": 30.166180764115495,
+              "dirt_level": 11.783566418089764,
+              "weather_offset_c": -1.0503905689845325
+            },
+            "model": {
+              "avg_comfort": 83.45944444444444,
+              "energy_kwh": 27.21583333333333,
+              "total_reward": 160.31188142857144,
+              "unsafe_steps": 0
+            },
+            "deterministic": {
+              "avg_comfort": 83.45944444444444,
+              "energy_kwh": 27.21583333333333,
+              "total_reward": 160.31188142857144,
+              "unsafe_steps": 0
+            }
+          },
+          {
+            "scenario": {
+              "split": "test",
+              "index": 3,
+              "seed": 2699847547,
+              "start": "2026-04-17T18:00:00+00:00",
+              "occupants": 0,
+              "temperature_c": 16.73003602332072,
+              "humidity_pct": 45.176451238815815,
+              "co2_ppm": 1199.7749736339647,
+              "pm25_ugm3": 42.52427979445007,
+              "dirt_level": 11.003598862106744,
+              "weather_offset_c": -2.0990436259277643
+            },
+            "model": {
+              "avg_comfort": 96.05055555555556,
+              "energy_kwh": 17.40666666666667,
+              "total_reward": 266.1968942857143,
+              "unsafe_steps": 0
+            },
+            "deterministic": {
+              "avg_comfort": 96.05055555555556,
+              "energy_kwh": 17.40666666666667,
+              "total_reward": 266.1968942857143,
+              "unsafe_steps": 0
+            }
+          },
+          {
+            "scenario": {
+              "split": "test",
+              "index": 4,
+              "seed": 1891089302,
+              "start": "2026-09-24T00:00:00+00:00",
+              "occupants": 4,
+              "temperature_c": 18.682335035115052,
+              "humidity_pct": 35.43602755869309,
+              "co2_ppm": 1653.6670800150182,
+              "pm25_ugm3": 36.538570826661136,
+              "dirt_level": 49.2205547234456,
+              "weather_offset_c": -5.6483899876718535
+            },
+            "model": {
+              "avg_comfort": 81.33430555555556,
+              "energy_kwh": 21.0375,
+              "total_reward": 124.46380428571429,
+              "unsafe_steps": 11
+            },
+            "deterministic": {
+              "avg_comfort": 81.33430555555556,
+              "energy_kwh": 21.0375,
+              "total_reward": 124.46380428571429,
+              "unsafe_steps": 11
+            }
+          },
+          {
+            "scenario": {
+              "split": "test",
+              "index": 5,
+              "seed": 905177767,
+              "start": "2026-02-26T00:00:00+00:00",
+              "occupants": 4,
+              "temperature_c": 25.3463805097093,
+              "humidity_pct": 44.97956128956507,
+              "co2_ppm": 1473.7701991618762,
+              "pm25_ugm3": 60.87289841517427,
+              "dirt_level": 23.365382207408558,
+              "weather_offset_c": -3.8521615778968643
+            },
+            "model": {
+              "avg_comfort": 45.67201388888889,
+              "energy_kwh": 31.48666666666667,
+              "total_reward": -197.34086,
+              "unsafe_steps": 3
+            },
+            "deterministic": {
+              "avg_comfort": 45.67201388888889,
+              "energy_kwh": 31.48666666666667,
+              "total_reward": -197.34086,
+              "unsafe_steps": 3
+            }
+          },
+          {
+            "scenario": {
+              "split": "test",
+              "index": 6,
+              "seed": 2480358753,
+              "start": "2026-07-07T12:00:00+00:00",
+              "occupants": 0,
+              "temperature_c": 18.929099360954492,
+              "humidity_pct": 56.5859778248172,
+              "co2_ppm": 1061.5281742441366,
+              "pm25_ugm3": 57.98768245147864,
+              "dirt_level": 22.874793176610908,
+              "weather_offset_c": 1.8771231887335418
+            },
+            "model": {
+              "avg_comfort": 94.73625,
+              "energy_kwh": 18.91166666666667,
+              "total_reward": 248.19392285714287,
+              "unsafe_steps": 2
+            },
+            "deterministic": {
+              "avg_comfort": 94.73625,
+              "energy_kwh": 18.91166666666667,
+              "total_reward": 248.19392285714287,
+              "unsafe_steps": 2
+            }
+          },
+          {
+            "scenario": {
+              "split": "test",
+              "index": 7,
+              "seed": 2375247424,
+              "start": "2026-12-03T06:00:00+00:00",
+              "occupants": 3,
+              "temperature_c": 18.989700093461586,
+              "humidity_pct": 34.66952551147906,
+              "co2_ppm": 531.6887419166311,
+              "pm25_ugm3": 62.72052132717948,
+              "dirt_level": 5.285937841065657,
+              "weather_offset_c": -4.083856412392404
+            },
+            "model": {
+              "avg_comfort": 74.31756944444444,
+              "energy_kwh": 27.645833333333332,
+              "total_reward": 7.568680000000004,
+              "unsafe_steps": 22
+            },
+            "deterministic": {
+              "avg_comfort": 74.31756944444444,
+              "energy_kwh": 27.645833333333332,
+              "total_reward": 7.568680000000004,
+              "unsafe_steps": 22
+            }
+          },
+          {
+            "scenario": {
+              "split": "test",
+              "index": 8,
+              "seed": 928769324,
+              "start": "2026-05-15T06:00:00+00:00",
+              "occupants": 2,
+              "temperature_c": 22.98261293899878,
+              "humidity_pct": 58.89782541961937,
+              "co2_ppm": 939.052852231958,
+              "pm25_ugm3": 39.28810794244953,
+              "dirt_level": 58.96205414986863,
+              "weather_offset_c": 2.6865677720033894
+            },
+            "model": {
+              "avg_comfort": 89.29972222222223,
+              "energy_kwh": 22.504166666666666,
+              "total_reward": 214.85006714285714,
+              "unsafe_steps": 0
+            },
+            "deterministic": {
+              "avg_comfort": 89.29972222222223,
+              "energy_kwh": 22.504166666666666,
+              "total_reward": 214.85006714285714,
+              "unsafe_steps": 0
+            }
+          },
+          {
+            "scenario": {
+              "split": "test",
+              "index": 9,
+              "seed": 3535413557,
+              "start": "2026-10-04T06:00:00+00:00",
+              "occupants": 1,
+              "temperature_c": 23.465418301495916,
+              "humidity_pct": 43.693766429236206,
+              "co2_ppm": 1345.771450885902,
+              "pm25_ugm3": 32.795344235190164,
+              "dirt_level": 43.28772657352494,
+              "weather_offset_c": 5.392995353020899
+            },
+            "model": {
+              "avg_comfort": 91.96270833333334,
+              "energy_kwh": 21.301666666666666,
+              "total_reward": 234.95743857142858,
+              "unsafe_steps": 0
+            },
+            "deterministic": {
+              "avg_comfort": 91.96270833333334,
+              "energy_kwh": 21.301666666666666,
+              "total_reward": 234.95743857142858,
+              "unsafe_steps": 0
+            }
+          },
+          {
+            "scenario": {
+              "split": "test",
+              "index": 10,
+              "seed": 4156842048,
+              "start": "2026-03-12T06:00:00+00:00",
+              "occupants": 1,
+              "temperature_c": 19.75049930588626,
+              "humidity_pct": 40.02338625760062,
+              "co2_ppm": 1431.081078716952,
+              "pm25_ugm3": 25.703432070245455,
+              "dirt_level": 29.416893133143788,
+              "weather_offset_c": -0.12028017969682203
+            },
+            "model": {
+              "avg_comfort": 89.06395833333333,
+              "energy_kwh": 26.545833333333334,
+              "total_reward": 205.48174,
+              "unsafe_steps": 0
+            },
+            "deterministic": {
+              "avg_comfort": 89.06395833333333,
+              "energy_kwh": 26.545833333333334,
+              "total_reward": 205.48174,
+              "unsafe_steps": 0
+            }
+          },
+          {
+            "scenario": {
+              "split": "test",
+              "index": 11,
+              "seed": 4236937907,
+              "start": "2026-08-26T12:00:00+00:00",
+              "occupants": 0,
+              "temperature_c": 26.943993536251423,
+              "humidity_pct": 79.08487063290472,
+              "co2_ppm": 1812.2366579469215,
+              "pm25_ugm3": 27.533043387241925,
+              "dirt_level": 6.17597399595309,
+              "weather_offset_c": 1.031547544722602
+            },
+            "model": {
+              "avg_comfort": 92.50680555555556,
+              "energy_kwh": 18.265,
+              "total_reward": 201.04165,
+              "unsafe_steps": 11
+            },
+            "deterministic": {
+              "avg_comfort": 92.50680555555556,
+              "energy_kwh": 18.265,
+              "total_reward": 201.04165,
+              "unsafe_steps": 11
+            }
+          }
+        ],
+        "unsafe_thresholds": {
+          "temperature_c": [
+            5,
+            32
+          ],
+          "co2_ppm_max": 1500,
+          "pm25_ugm3_max": 55
+        },
+        "baseline": "HVAC heat below 20 C, cool above 24 C; ventilation above 1000 ppm CO2; purifier above 12 ug/m3 PM2.5; humidity target 40-60%; clean above 30% dirt. Shared lighting, blinds, security, sleep and final safety rules.",
+        "method": "Paired closed-loop simulation: identical initial states, weather, seeded physics/occupancy noise; 10-minute steps. Both controllers use the same final safety rules. No training. Higher comfort/reward and lower energy/unsafe steps are better. Results describe this simulator and these scenarios, not measured real-world savings."
+      }
+    },
+    {
+      "seed": 43,
+      "best_episode": 0,
+      "checkpoint": "data/user/training/improved-v2-20261023/seed-43/best.pt",
+      "validation": {
+        "protocol_version": 2,
+        "split": "validation",
+        "action_mode": "residual_v1",
+        "reward_version": "comfort_safety_v2",
+        "episodes": 6,
+        "steps_per_episode": 144,
+        "seed": 10000,
+        "summary": {
+          "model": {
+            "avg_comfort": 76.59114583333333,
+            "energy_kwh": 28.172638888888887,
+            "total_reward": 49.612047619047615,
+            "unsafe_steps": 14.5
+          },
+          "deterministic": {
+            "avg_comfort": 76.59114583333333,
+            "energy_kwh": 28.172638888888887,
+            "total_reward": 49.612047619047615,
+            "unsafe_steps": 14.5
+          }
+        },
+        "delta_model_minus_deterministic": {
+          "avg_comfort": 0.0,
+          "energy_kwh": 0.0,
+          "total_reward": 0.0,
+          "unsafe_steps": 0.0
+        },
+        "paired_delta_stddev": {
+          "avg_comfort": 0.0,
+          "energy_kwh": 0.0,
+          "total_reward": 0.0,
+          "unsafe_steps": 0.0
+        },
+        "trials": [
+          {
+            "scenario": {
+              "split": "validation",
+              "index": 0,
+              "seed": 2598854614,
+              "start": "2025-01-07T06:00:00+00:00",
+              "occupants": 0,
+              "temperature_c": 26.108765301470797,
+              "humidity_pct": 30.541673462468673,
+              "co2_ppm": 1612.4744436499639,
+              "pm25_ugm3": 4.2695634354790695,
+              "dirt_level": 68.76944786851115,
+              "weather_offset_c": -3.867082857973616
+            },
+            "model": {
+              "avg_comfort": 54.938472222222224,
+              "energy_kwh": 26.96333333333333,
+              "total_reward": -128.02909,
+              "unsafe_steps": 3
+            },
+            "deterministic": {
+              "avg_comfort": 54.938472222222224,
+              "energy_kwh": 26.96333333333333,
+              "total_reward": -128.02909,
+              "unsafe_steps": 3
+            }
+          },
+          {
+            "scenario": {
+              "split": "validation",
+              "index": 1,
+              "seed": 3302553658,
+              "start": "2025-06-22T18:00:00+00:00",
+              "occupants": 4,
+              "temperature_c": 27.450786125726065,
+              "humidity_pct": 67.32960599443439,
+              "co2_ppm": 1134.538786910357,
+              "pm25_ugm3": 59.14463174810088,
+              "dirt_level": 61.28732906268164,
+              "weather_offset_c": 4.089570068351074
+            },
+            "model": {
+              "avg_comfort": 77.33715277777777,
+              "energy_kwh": 34.089166666666664,
+              "total_reward": 37.41397571428572,
+              "unsafe_steps": 22
+            },
+            "deterministic": {
+              "avg_comfort": 77.33715277777777,
+              "energy_kwh": 34.089166666666664,
+              "total_reward": 37.41397571428572,
+              "unsafe_steps": 22
+            }
+          },
+          {
+            "scenario": {
+              "split": "validation",
+              "index": 2,
+              "seed": 2076462372,
+              "start": "2025-11-04T06:00:00+00:00",
+              "occupants": 0,
+              "temperature_c": 26.753576697004416,
+              "humidity_pct": 77.57701572771094,
+              "co2_ppm": 1806.25933125669,
+              "pm25_ugm3": 25.197923669131022,
+              "dirt_level": 12.421357304515558,
+              "weather_offset_c": -2.0027479399470107
+            },
+            "model": {
+              "avg_comfort": 94.15826388888888,
+              "energy_kwh": 23.584999999999997,
+              "total_reward": 213.00432999999998,
+              "unsafe_steps": 11
+            },
+            "deterministic": {
+              "avg_comfort": 94.15826388888888,
+              "energy_kwh": 23.584999999999997,
+              "total_reward": 213.00432999999998,
+              "unsafe_steps": 11
+            }
+          },
+          {
+            "scenario": {
+              "split": "validation",
+              "index": 3,
+              "seed": 1461837951,
+              "start": "2025-04-11T06:00:00+00:00",
+              "occupants": 2,
+              "temperature_c": 22.729286712107697,
+              "humidity_pct": 30.811814968035165,
+              "co2_ppm": 2074.370200750638,
+              "pm25_ugm3": 18.23642307240943,
+              "dirt_level": 54.23174584258692,
+              "weather_offset_c": -1.3680121227290236
+            },
+            "model": {
+              "avg_comfort": 85.88868055555555,
+              "energy_kwh": 24.958333333333332,
+              "total_reward": 103.44750142857143,
+              "unsafe_steps": 28
+            },
+            "deterministic": {
+              "avg_comfort": 85.88868055555555,
+              "energy_kwh": 24.958333333333332,
+              "total_reward": 103.44750142857143,
+              "unsafe_steps": 28
+            }
+          },
+          {
+            "scenario": {
+              "split": "validation",
+              "index": 4,
+              "seed": 3803521113,
+              "start": "2025-09-20T18:00:00+00:00",
+              "occupants": 3,
+              "temperature_c": 23.38042429434022,
+              "humidity_pct": 74.94943003703233,
+              "co2_ppm": 1359.2916763956869,
+              "pm25_ugm3": 65.22111835013342,
+              "dirt_level": 54.51869863506737,
+              "weather_offset_c": 5.961815079656915
+            },
+            "model": {
+              "avg_comfort": 84.71909722222222,
+              "energy_kwh": 28.386666666666663,
+              "total_reward": 106.30715142857143,
+              "unsafe_steps": 23
+            },
+            "deterministic": {
+              "avg_comfort": 84.71909722222222,
+              "energy_kwh": 28.386666666666663,
+              "total_reward": 106.30715142857143,
+              "unsafe_steps": 23
+            }
+          },
+          {
+            "scenario": {
+              "split": "validation",
+              "index": 5,
+              "seed": 651043174,
+              "start": "2025-02-04T00:00:00+00:00",
+              "occupants": 3,
+              "temperature_c": 20.17099329798918,
+              "humidity_pct": 58.07438972524308,
+              "co2_ppm": 1411.144611020321,
+              "pm25_ugm3": 46.717032155613154,
+              "dirt_level": 54.130190188624994,
+              "weather_offset_c": 1.1926659772480939
+            },
+            "model": {
+              "avg_comfort": 62.505208333333336,
+              "energy_kwh": 31.05333333333333,
+              "total_reward": -34.471582857142856,
+              "unsafe_steps": 0
+            },
+            "deterministic": {
+              "avg_comfort": 62.505208333333336,
+              "energy_kwh": 31.05333333333333,
+              "total_reward": -34.471582857142856,
+              "unsafe_steps": 0
+            }
+          }
+        ],
+        "unsafe_thresholds": {
+          "temperature_c": [
+            5,
+            32
+          ],
+          "co2_ppm_max": 1500,
+          "pm25_ugm3_max": 55
+        },
+        "baseline": "HVAC heat below 20 C, cool above 24 C; ventilation above 1000 ppm CO2; purifier above 12 ug/m3 PM2.5; humidity target 40-60%; clean above 30% dirt. Shared lighting, blinds, security, sleep and final safety rules.",
+        "method": "Paired closed-loop simulation: identical initial states, weather, seeded physics/occupancy noise; 10-minute steps. Both controllers use the same final safety rules. No training. Higher comfort/reward and lower energy/unsafe steps are better. Results describe this simulator and these scenarios, not measured real-world savings."
+      },
+      "test": {
+        "protocol_version": 2,
+        "split": "test",
+        "action_mode": "residual_v1",
+        "reward_version": "comfort_safety_v2",
+        "episodes": 12,
+        "steps_per_episode": 144,
+        "seed": 20000,
+        "summary": {
+          "model": {
+            "avg_comfort": 84.5484837962963,
+            "energy_kwh": 23.900694444444444,
+            "total_reward": 155.7330011904762,
+            "unsafe_steps": 4.083333333333333
+          },
+          "deterministic": {
+            "avg_comfort": 84.5484837962963,
+            "energy_kwh": 23.900694444444444,
+            "total_reward": 155.7330011904762,
+            "unsafe_steps": 4.083333333333333
+          }
+        },
+        "delta_model_minus_deterministic": {
+          "avg_comfort": 0.0,
+          "energy_kwh": 0.0,
+          "total_reward": 0.0,
+          "unsafe_steps": 0.0
+        },
+        "paired_delta_stddev": {
+          "avg_comfort": 0.0,
+          "energy_kwh": 0.0,
+          "total_reward": 0.0,
+          "unsafe_steps": 0.0
+        },
+        "trials": [
+          {
+            "scenario": {
+              "split": "test",
+              "index": 0,
+              "seed": 3724362391,
+              "start": "2026-01-03T00:00:00+00:00",
+              "occupants": 3,
+              "temperature_c": 26.43851627524013,
+              "humidity_pct": 50.22300211260837,
+              "co2_ppm": 806.3682320497745,
+              "pm25_ugm3": 46.54097542442913,
+              "dirt_level": 25.841356070503515,
+              "weather_offset_c": 4.712604090567732
+            },
+            "model": {
+              "avg_comfort": 88.52333333333334,
+              "energy_kwh": 27.882499999999997,
+              "total_reward": 203.84528571428572,
+              "unsafe_steps": 0
+            },
+            "deterministic": {
+              "avg_comfort": 88.52333333333334,
+              "energy_kwh": 27.882499999999997,
+              "total_reward": 203.84528571428572,
+              "unsafe_steps": 0
+            }
+          },
+          {
+            "scenario": {
+              "split": "test",
+              "index": 1,
+              "seed": 2746779861,
+              "start": "2026-06-13T18:00:00+00:00",
+              "occupants": 3,
+              "temperature_c": 25.12043561566147,
+              "humidity_pct": 71.52243523400928,
+              "co2_ppm": 805.6826797343948,
+              "pm25_ugm3": 21.476198609679546,
+              "dirt_level": 45.56417893392155,
+              "weather_offset_c": -1.1681255891612157
+            },
+            "model": {
+              "avg_comfort": 87.65513888888889,
+              "energy_kwh": 26.605,
+              "total_reward": 199.22550999999999,
+              "unsafe_steps": 0
+            },
+            "deterministic": {
+              "avg_comfort": 87.65513888888889,
+              "energy_kwh": 26.605,
+              "total_reward": 199.22550999999999,
+              "unsafe_steps": 0
+            }
+          },
+          {
+            "scenario": {
+              "split": "test",
+              "index": 2,
+              "seed": 662577455,
+              "start": "2026-11-09T12:00:00+00:00",
+              "occupants": 3,
+              "temperature_c": 24.463809250407508,
+              "humidity_pct": 36.04860681768356,
+              "co2_ppm": 1385.2376247881898,
+              "pm25_ugm3": 30.166180764115495,
+              "dirt_level": 11.783566418089764,
+              "weather_offset_c": -1.0503905689845325
+            },
+            "model": {
+              "avg_comfort": 83.45944444444444,
+              "energy_kwh": 27.21583333333333,
+              "total_reward": 160.31188142857144,
+              "unsafe_steps": 0
+            },
+            "deterministic": {
+              "avg_comfort": 83.45944444444444,
+              "energy_kwh": 27.21583333333333,
+              "total_reward": 160.31188142857144,
+              "unsafe_steps": 0
+            }
+          },
+          {
+            "scenario": {
+              "split": "test",
+              "index": 3,
+              "seed": 2699847547,
+              "start": "2026-04-17T18:00:00+00:00",
+              "occupants": 0,
+              "temperature_c": 16.73003602332072,
+              "humidity_pct": 45.176451238815815,
+              "co2_ppm": 1199.7749736339647,
+              "pm25_ugm3": 42.52427979445007,
+              "dirt_level": 11.003598862106744,
+              "weather_offset_c": -2.0990436259277643
+            },
+            "model": {
+              "avg_comfort": 96.05055555555556,
+              "energy_kwh": 17.40666666666667,
+              "total_reward": 266.1968942857143,
+              "unsafe_steps": 0
+            },
+            "deterministic": {
+              "avg_comfort": 96.05055555555556,
+              "energy_kwh": 17.40666666666667,
+              "total_reward": 266.1968942857143,
+              "unsafe_steps": 0
+            }
+          },
+          {
+            "scenario": {
+              "split": "test",
+              "index": 4,
+              "seed": 1891089302,
+              "start": "2026-09-24T00:00:00+00:00",
+              "occupants": 4,
+              "temperature_c": 18.682335035115052,
+              "humidity_pct": 35.43602755869309,
+              "co2_ppm": 1653.6670800150182,
+              "pm25_ugm3": 36.538570826661136,
+              "dirt_level": 49.2205547234456,
+              "weather_offset_c": -5.6483899876718535
+            },
+            "model": {
+              "avg_comfort": 81.33430555555556,
+              "energy_kwh": 21.0375,
+              "total_reward": 124.46380428571429,
+              "unsafe_steps": 11
+            },
+            "deterministic": {
+              "avg_comfort": 81.33430555555556,
+              "energy_kwh": 21.0375,
+              "total_reward": 124.46380428571429,
+              "unsafe_steps": 11
+            }
+          },
+          {
+            "scenario": {
+              "split": "test",
+              "index": 5,
+              "seed": 905177767,
+              "start": "2026-02-26T00:00:00+00:00",
+              "occupants": 4,
+              "temperature_c": 25.3463805097093,
+              "humidity_pct": 44.97956128956507,
+              "co2_ppm": 1473.7701991618762,
+              "pm25_ugm3": 60.87289841517427,
+              "dirt_level": 23.365382207408558,
+              "weather_offset_c": -3.8521615778968643
+            },
+            "model": {
+              "avg_comfort": 45.67201388888889,
+              "energy_kwh": 31.48666666666667,
+              "total_reward": -197.34086,
+              "unsafe_steps": 3
+            },
+            "deterministic": {
+              "avg_comfort": 45.67201388888889,
+              "energy_kwh": 31.48666666666667,
+              "total_reward": -197.34086,
+              "unsafe_steps": 3
+            }
+          },
+          {
+            "scenario": {
+              "split": "test",
+              "index": 6,
+              "seed": 2480358753,
+              "start": "2026-07-07T12:00:00+00:00",
+              "occupants": 0,
+              "temperature_c": 18.929099360954492,
+              "humidity_pct": 56.5859778248172,
+              "co2_ppm": 1061.5281742441366,
+              "pm25_ugm3": 57.98768245147864,
+              "dirt_level": 22.874793176610908,
+              "weather_offset_c": 1.8771231887335418
+            },
+            "model": {
+              "avg_comfort": 94.73625,
+              "energy_kwh": 18.91166666666667,
+              "total_reward": 248.19392285714287,
+              "unsafe_steps": 2
+            },
+            "deterministic": {
+              "avg_comfort": 94.73625,
+              "energy_kwh": 18.91166666666667,
+              "total_reward": 248.19392285714287,
+              "unsafe_steps": 2
+            }
+          },
+          {
+            "scenario": {
+              "split": "test",
+              "index": 7,
+              "seed": 2375247424,
+              "start": "2026-12-03T06:00:00+00:00",
+              "occupants": 3,
+              "temperature_c": 18.989700093461586,
+              "humidity_pct": 34.66952551147906,
+              "co2_ppm": 531.6887419166311,
+              "pm25_ugm3": 62.72052132717948,
+              "dirt_level": 5.285937841065657,
+              "weather_offset_c": -4.083856412392404
+            },
+            "model": {
+              "avg_comfort": 74.31756944444444,
+              "energy_kwh": 27.645833333333332,
+              "total_reward": 7.568680000000004,
+              "unsafe_steps": 22
+            },
+            "deterministic": {
+              "avg_comfort": 74.31756944444444,
+              "energy_kwh": 27.645833333333332,
+              "total_reward": 7.568680000000004,
+              "unsafe_steps": 22
+            }
+          },
+          {
+            "scenario": {
+              "split": "test",
+              "index": 8,
+              "seed": 928769324,
+              "start": "2026-05-15T06:00:00+00:00",
+              "occupants": 2,
+              "temperature_c": 22.98261293899878,
+              "humidity_pct": 58.89782541961937,
+              "co2_ppm": 939.052852231958,
+              "pm25_ugm3": 39.28810794244953,
+              "dirt_level": 58.96205414986863,
+              "weather_offset_c": 2.6865677720033894
+            },
+            "model": {
+              "avg_comfort": 89.29972222222223,
+              "energy_kwh": 22.504166666666666,
+              "total_reward": 214.85006714285714,
+              "unsafe_steps": 0
+            },
+            "deterministic": {
+              "avg_comfort": 89.29972222222223,
+              "energy_kwh": 22.504166666666666,
+              "total_reward": 214.85006714285714,
+              "unsafe_steps": 0
+            }
+          },
+          {
+            "scenario": {
+              "split": "test",
+              "index": 9,
+              "seed": 3535413557,
+              "start": "2026-10-04T06:00:00+00:00",
+              "occupants": 1,
+              "temperature_c": 23.465418301495916,
+              "humidity_pct": 43.693766429236206,
+              "co2_ppm": 1345.771450885902,
+              "pm25_ugm3": 32.795344235190164,
+              "dirt_level": 43.28772657352494,
+              "weather_offset_c": 5.392995353020899
+            },
+            "model": {
+              "avg_comfort": 91.96270833333334,
+              "energy_kwh": 21.301666666666666,
+              "total_reward": 234.95743857142858,
+              "unsafe_steps": 0
+            },
+            "deterministic": {
+              "avg_comfort": 91.96270833333334,
+              "energy_kwh": 21.301666666666666,
+              "total_reward": 234.95743857142858,
+              "unsafe_steps": 0
+            }
+          },
+          {
+            "scenario": {
+              "split": "test",
+              "index": 10,
+              "seed": 4156842048,
+              "start": "2026-03-12T06:00:00+00:00",
+              "occupants": 1,
+              "temperature_c": 19.75049930588626,
+              "humidity_pct": 40.02338625760062,
+              "co2_ppm": 1431.081078716952,
+              "pm25_ugm3": 25.703432070245455,
+              "dirt_level": 29.416893133143788,
+              "weather_offset_c": -0.12028017969682203
+            },
+            "model": {
+              "avg_comfort": 89.06395833333333,
+              "energy_kwh": 26.545833333333334,
+              "total_reward": 205.48174,
+              "unsafe_steps": 0
+            },
+            "deterministic": {
+              "avg_comfort": 89.06395833333333,
+              "energy_kwh": 26.545833333333334,
+              "total_reward": 205.48174,
+              "unsafe_steps": 0
+            }
+          },
+          {
+            "scenario": {
+              "split": "test",
+              "index": 11,
+              "seed": 4236937907,
+              "start": "2026-08-26T12:00:00+00:00",
+              "occupants": 0,
+              "temperature_c": 26.943993536251423,
+              "humidity_pct": 79.08487063290472,
+              "co2_ppm": 1812.2366579469215,
+              "pm25_ugm3": 27.533043387241925,
+              "dirt_level": 6.17597399595309,
+              "weather_offset_c": 1.031547544722602
+            },
+            "model": {
+              "avg_comfort": 92.50680555555556,
+              "energy_kwh": 18.265,
+              "total_reward": 201.04165,
+              "unsafe_steps": 11
+            },
+            "deterministic": {
+              "avg_comfort": 92.50680555555556,
+              "energy_kwh": 18.265,
+              "total_reward": 201.04165,
+              "unsafe_steps": 11
+            }
+          }
+        ],
+        "unsafe_thresholds": {
+          "temperature_c": [
+            5,
+            32
+          ],
+          "co2_ppm_max": 1500,
+          "pm25_ugm3_max": 55
+        },
+        "baseline": "HVAC heat below 20 C, cool above 24 C; ventilation above 1000 ppm CO2; purifier above 12 ug/m3 PM2.5; humidity target 40-60%; clean above 30% dirt. Shared lighting, blinds, security, sleep and final safety rules.",
+        "method": "Paired closed-loop simulation: identical initial states, weather, seeded physics/occupancy noise; 10-minute steps. Both controllers use the same final safety rules. No training. Higher comfort/reward and lower energy/unsafe steps are better. Results describe this simulator and these scenarios, not measured real-world savings."
+      }
+    },
+    {
+      "seed": 44,
+      "best_episode": 0,
+      "checkpoint": "data/user/training/improved-v2-20261023/seed-44/best.pt",
+      "validation": {
+        "protocol_version": 2,
+        "split": "validation",
+        "action_mode": "residual_v1",
+        "reward_version": "comfort_safety_v2",
+        "episodes": 6,
+        "steps_per_episode": 144,
+        "seed": 10000,
+        "summary": {
+          "model": {
+            "avg_comfort": 76.59114583333333,
+            "energy_kwh": 28.172638888888887,
+            "total_reward": 49.612047619047615,
+            "unsafe_steps": 14.5
+          },
+          "deterministic": {
+            "avg_comfort": 76.59114583333333,
+            "energy_kwh": 28.172638888888887,
+            "total_reward": 49.612047619047615,
+            "unsafe_steps": 14.5
+          }
+        },
+        "delta_model_minus_deterministic": {
+          "avg_comfort": 0.0,
+          "energy_kwh": 0.0,
+          "total_reward": 0.0,
+          "unsafe_steps": 0.0
+        },
+        "paired_delta_stddev": {
+          "avg_comfort": 0.0,
+          "energy_kwh": 0.0,
+          "total_reward": 0.0,
+          "unsafe_steps": 0.0
+        },
+        "trials": [
+          {
+            "scenario": {
+              "split": "validation",
+              "index": 0,
+              "seed": 2598854614,
+              "start": "2025-01-07T06:00:00+00:00",
+              "occupants": 0,
+              "temperature_c": 26.108765301470797,
+              "humidity_pct": 30.541673462468673,
+              "co2_ppm": 1612.4744436499639,
+              "pm25_ugm3": 4.2695634354790695,
+              "dirt_level": 68.76944786851115,
+              "weather_offset_c": -3.867082857973616
+            },
+            "model": {
+              "avg_comfort": 54.938472222222224,
+              "energy_kwh": 26.96333333333333,
+              "total_reward": -128.02909,
+              "unsafe_steps": 3
+            },
+            "deterministic": {
+              "avg_comfort": 54.938472222222224,
+              "energy_kwh": 26.96333333333333,
+              "total_reward": -128.02909,
+              "unsafe_steps": 3
+            }
+          },
+          {
+            "scenario": {
+              "split": "validation",
+              "index": 1,
+              "seed": 3302553658,
+              "start": "2025-06-22T18:00:00+00:00",
+              "occupants": 4,
+              "temperature_c": 27.450786125726065,
+              "humidity_pct": 67.32960599443439,
+              "co2_ppm": 1134.538786910357,
+              "pm25_ugm3": 59.14463174810088,
+              "dirt_level": 61.28732906268164,
+              "weather_offset_c": 4.089570068351074
+            },
+            "model": {
+              "avg_comfort": 77.33715277777777,
+              "energy_kwh": 34.089166666666664,
+              "total_reward": 37.41397571428572,
+              "unsafe_steps": 22
+            },
+            "deterministic": {
+              "avg_comfort": 77.33715277777777,
+              "energy_kwh": 34.089166666666664,
+              "total_reward": 37.41397571428572,
+              "unsafe_steps": 22
+            }
+          },
+          {
+            "scenario": {
+              "split": "validation",
+              "index": 2,
+              "seed": 2076462372,
+              "start": "2025-11-04T06:00:00+00:00",
+              "occupants": 0,
+              "temperature_c": 26.753576697004416,
+              "humidity_pct": 77.57701572771094,
+              "co2_ppm": 1806.25933125669,
+              "pm25_ugm3": 25.197923669131022,
+              "dirt_level": 12.421357304515558,
+              "weather_offset_c": -2.0027479399470107
+            },
+            "model": {
+              "avg_comfort": 94.15826388888888,
+              "energy_kwh": 23.584999999999997,
+              "total_reward": 213.00432999999998,
+              "unsafe_steps": 11
+            },
+            "deterministic": {
+              "avg_comfort": 94.15826388888888,
+              "energy_kwh": 23.584999999999997,
+              "total_reward": 213.00432999999998,
+              "unsafe_steps": 11
+            }
+          },
+          {
+            "scenario": {
+              "split": "validation",
+              "index": 3,
+              "seed": 1461837951,
+              "start": "2025-04-11T06:00:00+00:00",
+              "occupants": 2,
+              "temperature_c": 22.729286712107697,
+              "humidity_pct": 30.811814968035165,
+              "co2_ppm": 2074.370200750638,
+              "pm25_ugm3": 18.23642307240943,
+              "dirt_level": 54.23174584258692,
+              "weather_offset_c": -1.3680121227290236
+            },
+            "model": {
+              "avg_comfort": 85.88868055555555,
+              "energy_kwh": 24.958333333333332,
+              "total_reward": 103.44750142857143,
+              "unsafe_steps": 28
+            },
+            "deterministic": {
+              "avg_comfort": 85.88868055555555,
+              "energy_kwh": 24.958333333333332,
+              "total_reward": 103.44750142857143,
+              "unsafe_steps": 28
+            }
+          },
+          {
+            "scenario": {
+              "split": "validation",
+              "index": 4,
+              "seed": 3803521113,
+              "start": "2025-09-20T18:00:00+00:00",
+              "occupants": 3,
+              "temperature_c": 23.38042429434022,
+              "humidity_pct": 74.94943003703233,
+              "co2_ppm": 1359.2916763956869,
+              "pm25_ugm3": 65.22111835013342,
+              "dirt_level": 54.51869863506737,
+              "weather_offset_c": 5.961815079656915
+            },
+            "model": {
+              "avg_comfort": 84.71909722222222,
+              "energy_kwh": 28.386666666666663,
+              "total_reward": 106.30715142857143,
+              "unsafe_steps": 23
+            },
+            "deterministic": {
+              "avg_comfort": 84.71909722222222,
+              "energy_kwh": 28.386666666666663,
+              "total_reward": 106.30715142857143,
+              "unsafe_steps": 23
+            }
+          },
+          {
+            "scenario": {
+              "split": "validation",
+              "index": 5,
+              "seed": 651043174,
+              "start": "2025-02-04T00:00:00+00:00",
+              "occupants": 3,
+              "temperature_c": 20.17099329798918,
+              "humidity_pct": 58.07438972524308,
+              "co2_ppm": 1411.144611020321,
+              "pm25_ugm3": 46.717032155613154,
+              "dirt_level": 54.130190188624994,
+              "weather_offset_c": 1.1926659772480939
+            },
+            "model": {
+              "avg_comfort": 62.505208333333336,
+              "energy_kwh": 31.05333333333333,
+              "total_reward": -34.471582857142856,
+              "unsafe_steps": 0
+            },
+            "deterministic": {
+              "avg_comfort": 62.505208333333336,
+              "energy_kwh": 31.05333333333333,
+              "total_reward": -34.471582857142856,
+              "unsafe_steps": 0
+            }
+          }
+        ],
+        "unsafe_thresholds": {
+          "temperature_c": [
+            5,
+            32
+          ],
+          "co2_ppm_max": 1500,
+          "pm25_ugm3_max": 55
+        },
+        "baseline": "HVAC heat below 20 C, cool above 24 C; ventilation above 1000 ppm CO2; purifier above 12 ug/m3 PM2.5; humidity target 40-60%; clean above 30% dirt. Shared lighting, blinds, security, sleep and final safety rules.",
+        "method": "Paired closed-loop simulation: identical initial states, weather, seeded physics/occupancy noise; 10-minute steps. Both controllers use the same final safety rules. No training. Higher comfort/reward and lower energy/unsafe steps are better. Results describe this simulator and these scenarios, not measured real-world savings."
+      },
+      "test": {
+        "protocol_version": 2,
+        "split": "test",
+        "action_mode": "residual_v1",
+        "reward_version": "comfort_safety_v2",
+        "episodes": 12,
+        "steps_per_episode": 144,
+        "seed": 20000,
+        "summary": {
+          "model": {
+            "avg_comfort": 84.5484837962963,
+            "energy_kwh": 23.900694444444444,
+            "total_reward": 155.7330011904762,
+            "unsafe_steps": 4.083333333333333
+          },
+          "deterministic": {
+            "avg_comfort": 84.5484837962963,
+            "energy_kwh": 23.900694444444444,
+            "total_reward": 155.7330011904762,
+            "unsafe_steps": 4.083333333333333
+          }
+        },
+        "delta_model_minus_deterministic": {
+          "avg_comfort": 0.0,
+          "energy_kwh": 0.0,
+          "total_reward": 0.0,
+          "unsafe_steps": 0.0
+        },
+        "paired_delta_stddev": {
+          "avg_comfort": 0.0,
+          "energy_kwh": 0.0,
+          "total_reward": 0.0,
+          "unsafe_steps": 0.0
+        },
+        "trials": [
+          {
+            "scenario": {
+              "split": "test",
+              "index": 0,
+              "seed": 3724362391,
+              "start": "2026-01-03T00:00:00+00:00",
+              "occupants": 3,
+              "temperature_c": 26.43851627524013,
+              "humidity_pct": 50.22300211260837,
+              "co2_ppm": 806.3682320497745,
+              "pm25_ugm3": 46.54097542442913,
+              "dirt_level": 25.841356070503515,
+              "weather_offset_c": 4.712604090567732
+            },
+            "model": {
+              "avg_comfort": 88.52333333333334,
+              "energy_kwh": 27.882499999999997,
+              "total_reward": 203.84528571428572,
+              "unsafe_steps": 0
+            },
+            "deterministic": {
+              "avg_comfort": 88.52333333333334,
+              "energy_kwh": 27.882499999999997,
+              "total_reward": 203.84528571428572,
+              "unsafe_steps": 0
+            }
+          },
+          {
+            "scenario": {
+              "split": "test",
+              "index": 1,
+              "seed": 2746779861,
+              "start": "2026-06-13T18:00:00+00:00",
+              "occupants": 3,
+              "temperature_c": 25.12043561566147,
+              "humidity_pct": 71.52243523400928,
+              "co2_ppm": 805.6826797343948,
+              "pm25_ugm3": 21.476198609679546,
+              "dirt_level": 45.56417893392155,
+              "weather_offset_c": -1.1681255891612157
+            },
+            "model": {
+              "avg_comfort": 87.65513888888889,
+              "energy_kwh": 26.605,
+              "total_reward": 199.22550999999999,
+              "unsafe_steps": 0
+            },
+            "deterministic": {
+              "avg_comfort": 87.65513888888889,
+              "energy_kwh": 26.605,
+              "total_reward": 199.22550999999999,
+              "unsafe_steps": 0
+            }
+          },
+          {
+            "scenario": {
+              "split": "test",
+              "index": 2,
+              "seed": 662577455,
+              "start": "2026-11-09T12:00:00+00:00",
+              "occupants": 3,
+              "temperature_c": 24.463809250407508,
+              "humidity_pct": 36.04860681768356,
+              "co2_ppm": 1385.2376247881898,
+              "pm25_ugm3": 30.166180764115495,
+              "dirt_level": 11.783566418089764,
+              "weather_offset_c": -1.0503905689845325
+            },
+            "model": {
+              "avg_comfort": 83.45944444444444,
+              "energy_kwh": 27.21583333333333,
+              "total_reward": 160.31188142857144,
+              "unsafe_steps": 0
+            },
+            "deterministic": {
+              "avg_comfort": 83.45944444444444,
+              "energy_kwh": 27.21583333333333,
+              "total_reward": 160.31188142857144,
+              "unsafe_steps": 0
+            }
+          },
+          {
+            "scenario": {
+              "split": "test",
+              "index": 3,
+              "seed": 2699847547,
+              "start": "2026-04-17T18:00:00+00:00",
+              "occupants": 0,
+              "temperature_c": 16.73003602332072,
+              "humidity_pct": 45.176451238815815,
+              "co2_ppm": 1199.7749736339647,
+              "pm25_ugm3": 42.52427979445007,
+              "dirt_level": 11.003598862106744,
+              "weather_offset_c": -2.0990436259277643
+            },
+            "model": {
+              "avg_comfort": 96.05055555555556,
+              "energy_kwh": 17.40666666666667,
+              "total_reward": 266.1968942857143,
+              "unsafe_steps": 0
+            },
+            "deterministic": {
+              "avg_comfort": 96.05055555555556,
+              "energy_kwh": 17.40666666666667,
+              "total_reward": 266.1968942857143,
+              "unsafe_steps": 0
+            }
+          },
+          {
+            "scenario": {
+              "split": "test",
+              "index": 4,
+              "seed": 1891089302,
+              "start": "2026-09-24T00:00:00+00:00",
+              "occupants": 4,
+              "temperature_c": 18.682335035115052,
+              "humidity_pct": 35.43602755869309,
+              "co2_ppm": 1653.6670800150182,
+              "pm25_ugm3": 36.538570826661136,
+              "dirt_level": 49.2205547234456,
+              "weather_offset_c": -5.6483899876718535
+            },
+            "model": {
+              "avg_comfort": 81.33430555555556,
+              "energy_kwh": 21.0375,
+              "total_reward": 124.46380428571429,
+              "unsafe_steps": 11
+            },
+            "deterministic": {
+              "avg_comfort": 81.33430555555556,
+              "energy_kwh": 21.0375,
+              "total_reward": 124.46380428571429,
+              "unsafe_steps": 11
+            }
+          },
+          {
+            "scenario": {
+              "split": "test",
+              "index": 5,
+              "seed": 905177767,
+              "start": "2026-02-26T00:00:00+00:00",
+              "occupants": 4,
+              "temperature_c": 25.3463805097093,
+              "humidity_pct": 44.97956128956507,
+              "co2_ppm": 1473.7701991618762,
+              "pm25_ugm3": 60.87289841517427,
+              "dirt_level": 23.365382207408558,
+              "weather_offset_c": -3.8521615778968643
+            },
+            "model": {
+              "avg_comfort": 45.67201388888889,
+              "energy_kwh": 31.48666666666667,
+              "total_reward": -197.34086,
+              "unsafe_steps": 3
+            },
+            "deterministic": {
+              "avg_comfort": 45.67201388888889,
+              "energy_kwh": 31.48666666666667,
+              "total_reward": -197.34086,
+              "unsafe_steps": 3
+            }
+          },
+          {
+            "scenario": {
+              "split": "test",
+              "index": 6,
+              "seed": 2480358753,
+              "start": "2026-07-07T12:00:00+00:00",
+              "occupants": 0,
+              "temperature_c": 18.929099360954492,
+              "humidity_pct": 56.5859778248172,
+              "co2_ppm": 1061.5281742441366,
+              "pm25_ugm3": 57.98768245147864,
+              "dirt_level": 22.874793176610908,
+              "weather_offset_c": 1.8771231887335418
+            },
+            "model": {
+              "avg_comfort": 94.73625,
+              "energy_kwh": 18.91166666666667,
+              "total_reward": 248.19392285714287,
+              "unsafe_steps": 2
+            },
+            "deterministic": {
+              "avg_comfort": 94.73625,
+              "energy_kwh": 18.91166666666667,
+              "total_reward": 248.19392285714287,
+              "unsafe_steps": 2
+            }
+          },
+          {
+            "scenario": {
+              "split": "test",
+              "index": 7,
+              "seed": 2375247424,
+              "start": "2026-12-03T06:00:00+00:00",
+              "occupants": 3,
+              "temperature_c": 18.989700093461586,
+              "humidity_pct": 34.66952551147906,
+              "co2_ppm": 531.6887419166311,
+              "pm25_ugm3": 62.72052132717948,
+              "dirt_level": 5.285937841065657,
+              "weather_offset_c": -4.083856412392404
+            },
+            "model": {
+              "avg_comfort": 74.31756944444444,
+              "energy_kwh": 27.645833333333332,
+              "total_reward": 7.568680000000004,
+              "unsafe_steps": 22
+            },
+            "deterministic": {
+              "avg_comfort": 74.31756944444444,
+              "energy_kwh": 27.645833333333332,
+              "total_reward": 7.568680000000004,
+              "unsafe_steps": 22
+            }
+          },
+          {
+            "scenario": {
+              "split": "test",
+              "index": 8,
+              "seed": 928769324,
+              "start": "2026-05-15T06:00:00+00:00",
+              "occupants": 2,
+              "temperature_c": 22.98261293899878,
+              "humidity_pct": 58.89782541961937,
+              "co2_ppm": 939.052852231958,
+              "pm25_ugm3": 39.28810794244953,
+              "dirt_level": 58.96205414986863,
+              "weather_offset_c": 2.6865677720033894
+            },
+            "model": {
+              "avg_comfort": 89.29972222222223,
+              "energy_kwh": 22.504166666666666,
+              "total_reward": 214.85006714285714,
+              "unsafe_steps": 0
+            },
+            "deterministic": {
+              "avg_comfort": 89.29972222222223,
+              "energy_kwh": 22.504166666666666,
+              "total_reward": 214.85006714285714,
+              "unsafe_steps": 0
+            }
+          },
+          {
+            "scenario": {
+              "split": "test",
+              "index": 9,
+              "seed": 3535413557,
+              "start": "2026-10-04T06:00:00+00:00",
+              "occupants": 1,
+              "temperature_c": 23.465418301495916,
+              "humidity_pct": 43.693766429236206,
+              "co2_ppm": 1345.771450885902,
+              "pm25_ugm3": 32.795344235190164,
+              "dirt_level": 43.28772657352494,
+              "weather_offset_c": 5.392995353020899
+            },
+            "model": {
+              "avg_comfort": 91.96270833333334,
+              "energy_kwh": 21.301666666666666,
+              "total_reward": 234.95743857142858,
+              "unsafe_steps": 0
+            },
+            "deterministic": {
+              "avg_comfort": 91.96270833333334,
+              "energy_kwh": 21.301666666666666,
+              "total_reward": 234.95743857142858,
+              "unsafe_steps": 0
+            }
+          },
+          {
+            "scenario": {
+              "split": "test",
+              "index": 10,
+              "seed": 4156842048,
+              "start": "2026-03-12T06:00:00+00:00",
+              "occupants": 1,
+              "temperature_c": 19.75049930588626,
+              "humidity_pct": 40.02338625760062,
+              "co2_ppm": 1431.081078716952,
+              "pm25_ugm3": 25.703432070245455,
+              "dirt_level": 29.416893133143788,
+              "weather_offset_c": -0.12028017969682203
+            },
+            "model": {
+              "avg_comfort": 89.06395833333333,
+              "energy_kwh": 26.545833333333334,
+              "total_reward": 205.48174,
+              "unsafe_steps": 0
+            },
+            "deterministic": {
+              "avg_comfort": 89.06395833333333,
+              "energy_kwh": 26.545833333333334,
+              "total_reward": 205.48174,
+              "unsafe_steps": 0
+            }
+          },
+          {
+            "scenario": {
+              "split": "test",
+              "index": 11,
+              "seed": 4236937907,
+              "start": "2026-08-26T12:00:00+00:00",
+              "occupants": 0,
+              "temperature_c": 26.943993536251423,
+              "humidity_pct": 79.08487063290472,
+              "co2_ppm": 1812.2366579469215,
+              "pm25_ugm3": 27.533043387241925,
+              "dirt_level": 6.17597399595309,
+              "weather_offset_c": 1.031547544722602
+            },
+            "model": {
+              "avg_comfort": 92.50680555555556,
+              "energy_kwh": 18.265,
+              "total_reward": 201.04165,
+              "unsafe_steps": 11
+            },
+            "deterministic": {
+              "avg_comfort": 92.50680555555556,
+              "energy_kwh": 18.265,
+              "total_reward": 201.04165,
+              "unsafe_steps": 11
+            }
+          }
+        ],
+        "unsafe_thresholds": {
+          "temperature_c": [
+            5,
+            32
+          ],
+          "co2_ppm_max": 1500,
+          "pm25_ugm3_max": 55
+        },
+        "baseline": "HVAC heat below 20 C, cool above 24 C; ventilation above 1000 ppm CO2; purifier above 12 ug/m3 PM2.5; humidity target 40-60%; clean above 30% dirt. Shared lighting, blinds, security, sleep and final safety rules.",
+        "method": "Paired closed-loop simulation: identical initial states, weather, seeded physics/occupancy noise; 10-minute steps. Both controllers use the same final safety rules. No training. Higher comfort/reward and lower energy/unsafe steps are better. Results describe this simulator and these scenarios, not measured real-world savings."
+      }
+    }
+  ],
+  "note": "Simulation results; residual policy includes the deterministic teacher and safety rules.",
+  "test_across_training_seeds": {
+    "avg_comfort": {
+      "mean": 84.5484837962963,
+      "stddev": 0.0
+    },
+    "energy_kwh": {
+      "mean": 23.900694444444444,
+      "stddev": 0.0
+    },
+    "total_reward": {
+      "mean": 155.7330011904762,
+      "stddev": 0.0
+    },
+    "unsafe_steps": {
+      "mean": 4.083333333333333,
+      "stddev": 0.0
+    }
+  },
+  "reference": {
+    "model": "data/model.pt",
+    "sha256": "05b5b171bc5e201ed4af8d8060aee838519b4a17746215ec1aa39f45409d909f",
+    "test": {
+      "protocol_version": 2,
+      "split": "test",
+      "action_mode": "legacy",
+      "reward_version": "comfort_safety_v2",
+      "episodes": 12,
+      "steps_per_episode": 144,
+      "seed": 20000,
+      "summary": {
+        "model": {
+          "avg_comfort": 57.833315972222216,
+          "energy_kwh": 16.78388888888889,
+          "total_reward": -104.13594142857143,
+          "unsafe_steps": 8.5
+        },
+        "deterministic": {
+          "avg_comfort": 84.5484837962963,
+          "energy_kwh": 23.900694444444444,
+          "total_reward": 155.7330011904762,
+          "unsafe_steps": 4.083333333333333
+        }
+      },
+      "delta_model_minus_deterministic": {
+        "avg_comfort": -26.71516782407408,
+        "energy_kwh": -7.116805555555555,
+        "total_reward": -259.86894261904763,
+        "unsafe_steps": 4.416666666666667
+      },
+      "paired_delta_stddev": {
+        "avg_comfort": 18.288649628791212,
+        "energy_kwh": 3.755747780815111,
+        "total_reward": 184.38278947100864,
+        "unsafe_steps": 7.366488411390566
+      },
+      "trials": [
+        {
+          "scenario": {
+            "split": "test",
+            "index": 0,
+            "seed": 3724362391,
+            "start": "2026-01-03T00:00:00+00:00",
+            "occupants": 3,
+            "temperature_c": 26.43851627524013,
+            "humidity_pct": 50.22300211260837,
+            "co2_ppm": 806.3682320497745,
+            "pm25_ugm3": 46.54097542442913,
+            "dirt_level": 25.841356070503515,
+            "weather_offset_c": 4.712604090567732
+          },
+          "model": {
+            "avg_comfort": 38.73569444444444,
+            "energy_kwh": 16.945,
+            "total_reward": -263.0775857142857,
+            "unsafe_steps": 4
+          },
+          "deterministic": {
+            "avg_comfort": 88.52333333333334,
+            "energy_kwh": 27.882499999999997,
+            "total_reward": 203.84528571428572,
+            "unsafe_steps": 0
+          }
+        },
+        {
+          "scenario": {
+            "split": "test",
+            "index": 1,
+            "seed": 2746779861,
+            "start": "2026-06-13T18:00:00+00:00",
+            "occupants": 3,
+            "temperature_c": 25.12043561566147,
+            "humidity_pct": 71.52243523400928,
+            "co2_ppm": 805.6826797343948,
+            "pm25_ugm3": 21.476198609679546,
+            "dirt_level": 45.56417893392155,
+            "weather_offset_c": -1.1681255891612157
+          },
+          "model": {
+            "avg_comfort": 80.14729166666666,
+            "energy_kwh": 19.29,
+            "total_reward": 134.46060857142857,
+            "unsafe_steps": 0
+          },
+          "deterministic": {
+            "avg_comfort": 87.65513888888889,
+            "energy_kwh": 26.605,
+            "total_reward": 199.22550999999999,
+            "unsafe_steps": 0
+          }
+        },
+        {
+          "scenario": {
+            "split": "test",
+            "index": 2,
+            "seed": 662577455,
+            "start": "2026-11-09T12:00:00+00:00",
+            "occupants": 3,
+            "temperature_c": 24.463809250407508,
+            "humidity_pct": 36.04860681768356,
+            "co2_ppm": 1385.2376247881898,
+            "pm25_ugm3": 30.166180764115495,
+            "dirt_level": 11.783566418089764,
+            "weather_offset_c": -1.0503905689845325
+          },
+          "model": {
+            "avg_comfort": 45.14,
+            "energy_kwh": 13.884166666666667,
+            "total_reward": -192.30858285714285,
+            "unsafe_steps": 0
+          },
+          "deterministic": {
+            "avg_comfort": 83.45944444444444,
+            "energy_kwh": 27.21583333333333,
+            "total_reward": 160.31188142857144,
+            "unsafe_steps": 0
+          }
+        },
+        {
+          "scenario": {
+            "split": "test",
+            "index": 3,
+            "seed": 2699847547,
+            "start": "2026-04-17T18:00:00+00:00",
+            "occupants": 0,
+            "temperature_c": 16.73003602332072,
+            "humidity_pct": 45.176451238815815,
+            "co2_ppm": 1199.7749736339647,
+            "pm25_ugm3": 42.52427979445007,
+            "dirt_level": 11.003598862106744,
+            "weather_offset_c": -2.0990436259277643
+          },
+          "model": {
+            "avg_comfort": 66.50222222222222,
+            "energy_kwh": 15.486666666666668,
+            "total_reward": -9.970395714285708,
+            "unsafe_steps": 0
+          },
+          "deterministic": {
+            "avg_comfort": 96.05055555555556,
+            "energy_kwh": 17.40666666666667,
+            "total_reward": 266.1968942857143,
+            "unsafe_steps": 0
+          }
+        },
+        {
+          "scenario": {
+            "split": "test",
+            "index": 4,
+            "seed": 1891089302,
+            "start": "2026-09-24T00:00:00+00:00",
+            "occupants": 4,
+            "temperature_c": 18.682335035115052,
+            "humidity_pct": 35.43602755869309,
+            "co2_ppm": 1653.6670800150182,
+            "pm25_ugm3": 36.538570826661136,
+            "dirt_level": 49.2205547234456,
+            "weather_offset_c": -5.6483899876718535
+          },
+          "model": {
+            "avg_comfort": 65.91104166666666,
+            "energy_kwh": 13.972499999999998,
+            "total_reward": -29.85277714285714,
+            "unsafe_steps": 17
+          },
+          "deterministic": {
+            "avg_comfort": 81.33430555555556,
+            "energy_kwh": 21.0375,
+            "total_reward": 124.46380428571429,
+            "unsafe_steps": 11
+          }
+        },
+        {
+          "scenario": {
+            "split": "test",
+            "index": 5,
+            "seed": 905177767,
+            "start": "2026-02-26T00:00:00+00:00",
+            "occupants": 4,
+            "temperature_c": 25.3463805097093,
+            "humidity_pct": 44.97956128956507,
+            "co2_ppm": 1473.7701991618762,
+            "pm25_ugm3": 60.87289841517427,
+            "dirt_level": 23.365382207408558,
+            "weather_offset_c": -3.8521615778968643
+          },
+          "model": {
+            "avg_comfort": 12.858055555555556,
+            "energy_kwh": 22.115000000000002,
+            "total_reward": -578.0308614285714,
+            "unsafe_steps": 26
+          },
+          "deterministic": {
+            "avg_comfort": 45.67201388888889,
+            "energy_kwh": 31.48666666666667,
+            "total_reward": -197.34086,
+            "unsafe_steps": 3
+          }
+        },
+        {
+          "scenario": {
+            "split": "test",
+            "index": 6,
+            "seed": 2480358753,
+            "start": "2026-07-07T12:00:00+00:00",
+            "occupants": 0,
+            "temperature_c": 18.929099360954492,
+            "humidity_pct": 56.5859778248172,
+            "co2_ppm": 1061.5281742441366,
+            "pm25_ugm3": 57.98768245147864,
+            "dirt_level": 22.874793176610908,
+            "weather_offset_c": 1.8771231887335418
+          },
+          "model": {
+            "avg_comfort": 73.09201388888889,
+            "energy_kwh": 13.544999999999998,
+            "total_reward": 44.682770000000005,
+            "unsafe_steps": 2
+          },
+          "deterministic": {
+            "avg_comfort": 94.73625,
+            "energy_kwh": 18.91166666666667,
+            "total_reward": 248.19392285714287,
+            "unsafe_steps": 2
+          }
+        },
+        {
+          "scenario": {
+            "split": "test",
+            "index": 7,
+            "seed": 2375247424,
+            "start": "2026-12-03T06:00:00+00:00",
+            "occupants": 3,
+            "temperature_c": 18.989700093461586,
+            "humidity_pct": 34.66952551147906,
+            "co2_ppm": 531.6887419166311,
+            "pm25_ugm3": 62.72052132717948,
+            "dirt_level": 5.285937841065657,
+            "weather_offset_c": -4.083856412392404
+          },
+          "model": {
+            "avg_comfort": 17.814930555555556,
+            "energy_kwh": 27.30333333333333,
+            "total_reward": -573.5172714285715,
+            "unsafe_steps": 37
+          },
+          "deterministic": {
+            "avg_comfort": 74.31756944444444,
+            "energy_kwh": 27.645833333333332,
+            "total_reward": 7.568680000000004,
+            "unsafe_steps": 22
+          }
+        },
+        {
+          "scenario": {
+            "split": "test",
+            "index": 8,
+            "seed": 928769324,
+            "start": "2026-05-15T06:00:00+00:00",
+            "occupants": 2,
+            "temperature_c": 22.98261293899878,
+            "humidity_pct": 58.89782541961937,
+            "co2_ppm": 939.052852231958,
+            "pm25_ugm3": 39.28810794244953,
+            "dirt_level": 58.96205414986863,
+            "weather_offset_c": 2.6865677720033894
+          },
+          "model": {
+            "avg_comfort": 82.63819444444444,
+            "energy_kwh": 16.169166666666666,
+            "total_reward": 159.1705457142857,
+            "unsafe_steps": 0
+          },
+          "deterministic": {
+            "avg_comfort": 89.29972222222223,
+            "energy_kwh": 22.504166666666666,
+            "total_reward": 214.85006714285714,
+            "unsafe_steps": 0
+          }
+        },
+        {
+          "scenario": {
+            "split": "test",
+            "index": 9,
+            "seed": 3535413557,
+            "start": "2026-10-04T06:00:00+00:00",
+            "occupants": 1,
+            "temperature_c": 23.465418301495916,
+            "humidity_pct": 43.693766429236206,
+            "co2_ppm": 1345.771450885902,
+            "pm25_ugm3": 32.795344235190164,
+            "dirt_level": 43.28772657352494,
+            "weather_offset_c": 5.392995353020899
+          },
+          "model": {
+            "avg_comfort": 87.23958333333333,
+            "energy_kwh": 14.9775,
+            "total_reward": 195.13137571428572,
+            "unsafe_steps": 0
+          },
+          "deterministic": {
+            "avg_comfort": 91.96270833333334,
+            "energy_kwh": 21.301666666666666,
+            "total_reward": 234.95743857142858,
+            "unsafe_steps": 0
+          }
+        },
+        {
+          "scenario": {
+            "split": "test",
+            "index": 10,
+            "seed": 4156842048,
+            "start": "2026-03-12T06:00:00+00:00",
+            "occupants": 1,
+            "temperature_c": 19.75049930588626,
+            "humidity_pct": 40.02338625760062,
+            "co2_ppm": 1431.081078716952,
+            "pm25_ugm3": 25.703432070245455,
+            "dirt_level": 29.416893133143788,
+            "weather_offset_c": -0.12028017969682203
+          },
+          "model": {
+            "avg_comfort": 42.033680555555556,
+            "energy_kwh": 15.213333333333333,
+            "total_reward": -241.56276285714284,
+            "unsafe_steps": 5
+          },
+          "deterministic": {
+            "avg_comfort": 89.06395833333333,
+            "energy_kwh": 26.545833333333334,
+            "total_reward": 205.48174,
+            "unsafe_steps": 0
+          }
+        },
+        {
+          "scenario": {
+            "split": "test",
+            "index": 11,
+            "seed": 4236937907,
+            "start": "2026-08-26T12:00:00+00:00",
+            "occupants": 0,
+            "temperature_c": 26.943993536251423,
+            "humidity_pct": 79.08487063290472,
+            "co2_ppm": 1812.2366579469215,
+            "pm25_ugm3": 27.533043387241925,
+            "dirt_level": 6.17597399595309,
+            "weather_offset_c": 1.031547544722602
+          },
+          "model": {
+            "avg_comfort": 81.88708333333334,
+            "energy_kwh": 12.504999999999999,
+            "total_reward": 105.24364,
+            "unsafe_steps": 11
+          },
+          "deterministic": {
+            "avg_comfort": 92.50680555555556,
+            "energy_kwh": 18.265,
+            "total_reward": 201.04165,
+            "unsafe_steps": 11
+          }
+        }
+      ],
+      "unsafe_thresholds": {
+        "temperature_c": [
+          5,
+          32
+        ],
+        "co2_ppm_max": 1500,
+        "pm25_ugm3_max": 55
+      },
+      "baseline": "HVAC heat below 20 C, cool above 24 C; ventilation above 1000 ppm CO2; purifier above 12 ug/m3 PM2.5; humidity target 40-60%; clean above 30% dirt. Shared lighting, blinds, security, sleep and final safety rules.",
+      "method": "Paired closed-loop simulation: identical initial states, weather, seeded physics/occupancy noise; 10-minute steps. Both controllers use the same final safety rules. No training. Higher comfort/reward and lower energy/unsafe steps are better. Results describe this simulator and these scenarios, not measured real-world savings."
+    }
+  }
+}
