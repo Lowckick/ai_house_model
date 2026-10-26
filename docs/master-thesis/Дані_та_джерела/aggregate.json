@@ -1,0 +1,135 @@
+{
+  "test_episodes": 60,
+  "steps_per_episode": 144,
+  "training_seed": 42,
+  "selected_sha256": "a525ffcc0486ed5f8613229680333b12764fcf485adadfed2f3aceef1eb5337d",
+  "summary": {
+    "model": {
+      "avg_comfort": 82.62770486111111,
+      "energy_kwh": 25.997180555555556,
+      "total_reward": 123.40197545238095,
+      "unsafe_steps": 8.583333333333334
+    },
+    "deterministic": {
+      "avg_comfort": 79.51930439814815,
+      "energy_kwh": 25.100125000000002,
+      "total_reward": 91.480154,
+      "unsafe_steps": 10.316666666666666
+    }
+  },
+  "paired_delta": {
+    "avg_comfort": {
+      "mean": 3.108400462962964,
+      "stddev": 10.638089419319732,
+      "positive": 34,
+      "zero": 0,
+      "negative": 26
+    },
+    "energy_kwh": {
+      "mean": 0.8970555555555552,
+      "stddev": 5.991722722498259,
+      "positive": 34,
+      "zero": 0,
+      "negative": 26
+    },
+    "total_reward": {
+      "mean": 31.921821452380954,
+      "stddev": 98.39719207959125,
+      "positive": 36,
+      "zero": 0,
+      "negative": 24
+    },
+    "unsafe_steps": {
+      "mean": -1.7333333333333334,
+      "stddev": 4.041591676163756,
+      "positive": 1,
+      "zero": 38,
+      "negative": 21
+    }
+  },
+  "replications": [
+    {
+      "training_seed": 42,
+      "epoch": 30,
+      "summary": {
+        "avg_comfort": 83.45876736111111,
+        "energy_kwh": 25.554833333333335,
+        "total_reward": 131.04925550000002,
+        "unsafe_steps": 8.75
+      },
+      "labels": {
+        "3": 313,
+        "9": 82,
+        "6": 282,
+        "13": 57,
+        "1": 446,
+        "0": 21,
+        "7": 37,
+        "14": 122,
+        "18": 298,
+        "11": 2,
+        "10": 50,
+        "5": 9,
+        "15": 1,
+        "17": 1,
+        "12": 3,
+        "8": 4
+      },
+      "digest": "a525ffcc0486ed5f8613229680333b12764fcf485adadfed2f3aceef1eb5337d"
+    },
+    {
+      "training_seed": 43,
+      "epoch": 10,
+      "summary": {
+        "avg_comfort": 87.3666076388889,
+        "energy_kwh": 25.547333333333334,
+        "total_reward": 165.12969921428572,
+        "unsafe_steps": 9.5
+      },
+      "labels": {
+        "3": 359,
+        "13": 102,
+        "1": 460,
+        "11": 16,
+        "14": 92,
+        "9": 60,
+        "8": 2,
+        "18": 209,
+        "6": 254,
+        "7": 35,
+        "15": 2,
+        "0": 42,
+        "10": 67,
+        "5": 28
+      },
+      "digest": "43afee65f4d10e683942b5c23e415b4da992e5f93b73de60253f127db7d80b00"
+    },
+    {
+      "training_seed": 44,
+      "epoch": 25,
+      "summary": {
+        "avg_comfort": 82.43071180555556,
+        "energy_kwh": 27.025708333333334,
+        "total_reward": 124.8660715,
+        "unsafe_steps": 6.75
+      },
+      "labels": {
+        "13": 69,
+        "14": 80,
+        "3": 164,
+        "6": 177,
+        "18": 326,
+        "1": 605,
+        "9": 100,
+        "8": 4,
+        "0": 63,
+        "7": 43,
+        "10": 77,
+        "11": 8,
+        "5": 11,
+        "12": 1
+      },
+      "digest": "1a313c55e233428c3df1782b53eeb9f5ed0177c2a49eb4850670185fd0f9cdc4"
+    }
+  ]
+}

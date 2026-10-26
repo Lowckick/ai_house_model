@@ -4,8 +4,8 @@ digraph G { graph [rankdir=TB, bgcolor="white", pad="0.2", nodesep="0.35", ranks
 s ∈ R⁵⁴"];
  b [label="Детермінований контролер b(s)
 порогові режими + правила"];
- q [label="Q-мережа
-a = argmax Q(s,a)"];
+ q [label="Мережа політики
+a = argmax z(s,a)"];
  apply [label="19 варіантів корекції
 0: залишити b(s)
 1..18: змінити один режим"];

@@ -1,24 +1,66 @@
 [
-["Sutton R. S., Barto A. G. Reinforcement Learning: An Introduction. 2nd ed. Cambridge, MA: MIT Press, 2018. 552 p.","https://mitpress.mit.edu/9780262039246/reinforcement-learning/"],
-["Mnih V., Kavukcuoglu K., Silver D. et al. Human-level control through deep reinforcement learning. Nature. 2015. Vol. 518. P. 529–533. DOI: 10.1038/nature14236.","https://doi.org/10.1038/nature14236"],
-["van Hasselt H., Guez A., Silver D. Deep Reinforcement Learning with Double Q-Learning. Proceedings of the AAAI Conference on Artificial Intelligence. 2016. Vol. 30, no. 1. DOI: 10.1609/aaai.v30i1.10295.","https://ojs.aaai.org/index.php/AAAI/article/view/10295"],
-["Wang Z., Schaul T., Hessel M., van Hasselt H., Lanctot M., de Freitas N. Dueling Network Architectures for Deep Reinforcement Learning. Proceedings of Machine Learning Research. 2016. Vol. 48. P. 1995–2003.","https://proceedings.mlr.press/v48/wangf16.html"],
-["García J., Fernández F. A Comprehensive Survey on Safe Reinforcement Learning. Journal of Machine Learning Research. 2015. Vol. 16, no. 42. P. 1437–1480.","https://jmlr.org/papers/v16/garcia15a.html"],
-["Johannink T., Bahl S., Nair A. et al. Residual Reinforcement Learning for Robot Control. IEEE International Conference on Robotics and Automation. 2019. P. 6023–6029. DOI: 10.1109/ICRA.2019.8794127.","https://arxiv.org/abs/1812.03201"],
-["Blum D., Arroyo J., Huang S. et al. Building optimization testing framework (BOPTEST) for simulation-based benchmarking of control strategies in buildings. Journal of Building Performance Simulation. 2021. Vol. 14, no. 5. P. 586–610. DOI: 10.1080/19401493.2021.1986574.","https://ibpsa.github.io/project1-boptest/publications/"],
-["IBPSA. The Building Optimization Testing Framework (BOPTEST): офіційна документація.","https://ibpsa.github.io/project1-boptest/"],
-["CityLearn Project. CityLearn: офіційна документація середовища дослідження енергетичної координації будівель.","https://www.citylearn.net/"],
-["Drgoňa J., Arroyo J., Cupeiro Figueroa I. et al. All you need to know about model predictive control for buildings. Annual Reviews in Control. 2020. Vol. 50. P. 190–232. DOI: 10.1016/j.arcontrol.2020.09.001.","https://doi.org/10.1016/j.arcontrol.2020.09.001"],
-["Home Assistant Contributors. Architecture: офіційний опис архітектури.","https://contributors.home-assistant.io/architecture/"],
-["openHAB. Things: офіційна документація конфігурації пристроїв.","https://www.openhab.org/docs/configuration/things"],
-["UGR SAIL. Sinergym: офіційна документація.","https://ugr-sail.github.io/sinergym/"],
-["Agarwal R., Schwarzer M., Castro P. S., Courville A., Bellemare M. G. Deep Reinforcement Learning at the Edge of the Statistical Precipice. Advances in Neural Information Processing Systems. 2021. Vol. 34.","https://arxiv.org/abs/2108.13264"],
-["Головко Я. І. Smart House ML Control System: програмний код. Версія 92b197f18dbb9fc46d23911dc90fd98c2c3ebaee.","https://github.com/Lowckick/ai_house_model/tree/92b197f18dbb9fc46d23911dc90fd98c2c3ebaee"],
-["Object Management Group. OMG Unified Modeling Language, version 2.5.1. 2017.","https://www.omg.org/spec/UML/2.5.1"],
-["Python Software Foundation. http.server — HTTP servers: документація стандартної бібліотеки Python 3.12.","https://docs.python.org/3.12/library/http.server.html"],
-["Python Software Foundation. concurrent.futures — Launching parallel tasks: документація стандартної бібліотеки Python 3.12.","https://docs.python.org/3.12/library/concurrent.futures.html"],
-["SQLite. Atomic Commit In SQLite: технічна документація.","https://www.sqlite.org/atomiccommit.html"],
-["NumPy Developers. NumPy documentation: офіційна документація масивів та числових операцій.","https://numpy.org/doc/"],
-["Open-Meteo. Weather Forecast API: офіційна документація.","https://open-meteo.com/en/docs"],
-["PyTorch Contributors. Reproducibility: рекомендації щодо відтворюваності.","https://docs.pytorch.org/docs/stable/notes/randomness.html"]
+  [
+    "Sutton R. S., Barto A. G. Reinforcement Learning: An Introduction. 2nd ed. Cambridge, MA: MIT Press, 2018. 552 p.",
+    "https://mitpress.mit.edu/9780262039246/reinforcement-learning/"
+  ],
+  [
+    "Mnih V., Kavukcuoglu K., Silver D. et al. Human-level control through deep reinforcement learning. Nature. 2015. Vol. 518. P. 529–533. DOI: 10.1038/nature14236.",
+    "https://doi.org/10.1038/nature14236"
+  ],
+  [
+    "van Hasselt H., Guez A., Silver D. Deep Reinforcement Learning with Double Q-Learning. Proceedings of the AAAI Conference on Artificial Intelligence. 2016. Vol. 30, no. 1. DOI: 10.1609/aaai.v30i1.10295.",
+    "https://ojs.aaai.org/index.php/AAAI/article/view/10295"
+  ],
+  [
+    "Wang Z., Schaul T., Hessel M., van Hasselt H., Lanctot M., de Freitas N. Dueling Network Architectures for Deep Reinforcement Learning. Proceedings of Machine Learning Research. 2016. Vol. 48. P. 1995–2003.",
+    "https://proceedings.mlr.press/v48/wangf16.html"
+  ],
+  [
+    "García J., Fernández F. A Comprehensive Survey on Safe Reinforcement Learning. Journal of Machine Learning Research. 2015. Vol. 16, no. 42. P. 1437–1480.",
+    "https://jmlr.org/papers/v16/garcia15a.html"
+  ],
+  [
+    "Johannink T., Bahl S., Nair A. et al. Residual Reinforcement Learning for Robot Control. IEEE International Conference on Robotics and Automation. 2019. P. 6023–6029. DOI: 10.1109/ICRA.2019.8794127.",
+    "https://arxiv.org/abs/1812.03201"
+  ],
+  [
+    "Blum D., Arroyo J., Huang S. et al. Building optimization testing framework (BOPTEST) for simulation-based benchmarking of control strategies in buildings. Journal of Building Performance Simulation. 2021. Vol. 14, no. 5. P. 586–610. DOI: 10.1080/19401493.2021.1986574.",
+    "https://doi.org/10.1080/19401493.2021.1986574"
+  ],
+  [
+    "Hinton G., Vinyals O., Dean J. Distilling the Knowledge in a Neural Network. 2015. arXiv:1503.02531.",
+    "https://arxiv.org/abs/1503.02531"
+  ],
+  [
+    "Vázquez-Canteli J. R., Dey S., Henze G., Nagy Z. CityLearn: Standardizing Research in Multi-Agent Reinforcement Learning for Demand Response and Urban Energy Management. 2020. arXiv:2012.10504.",
+    "https://arxiv.org/abs/2012.10504"
+  ],
+  [
+    "Drgoňa J., Arroyo J., Cupeiro Figueroa I. et al. All you need to know about model predictive control for buildings. Annual Reviews in Control. 2020. Vol. 50. P. 190–232. DOI: 10.1016/j.arcontrol.2020.09.001.",
+    "https://doi.org/10.1016/j.arcontrol.2020.09.001"
+  ],
+  [
+    "Rusu A. A., Colmenarejo S. G., Gülçehre Ç. et al. Policy Distillation. International Conference on Learning Representations. 2016. arXiv:1511.06295.",
+    "https://arxiv.org/abs/1511.06295"
+  ],
+  [
+    "Ross S., Gordon G., Bagnell D. A Reduction of Imitation Learning and Structured Prediction to No-Regret Online Learning. Proceedings of Machine Learning Research. 2011. Vol. 15. P. 627–635.",
+    "https://proceedings.mlr.press/v15/ross11a.html"
+  ],
+  [
+    "Jiménez-Raboso J., Campoy-Nieves A., Manjavacas-Lucas A., Gómez-Romero J., Molina-Solana M. Sinergym: A Building Simulation and Control Framework for Training Reinforcement Learning Agents. Proceedings of BuildSys. 2021. P. 319–323. DOI: 10.1145/3486611.3488729.",
+    "https://doi.org/10.1145/3486611.3488729"
+  ],
+  [
+    "Agarwal R., Schwarzer M., Castro P. S., Courville A., Bellemare M. G. Deep Reinforcement Learning at the Edge of the Statistical Precipice. Advances in Neural Information Processing Systems. 2021. Vol. 34.",
+    "https://arxiv.org/abs/2108.13264"
+  ],
+  [
+    "Wei T., Wang Y., Zhu Q. Deep Reinforcement Learning for Building HVAC Control. Proceedings of the 54th Annual Design Automation Conference. 2017. Article 22. DOI: 10.1145/3061639.3062224.",
+    "https://doi.org/10.1145/3061639.3062224"
+  ],
+  [
+    "Vázquez-Canteli J. R., Nagy Z. Reinforcement learning for demand response: A review of algorithms and modeling techniques. Applied Energy. 2019. Vol. 235. P. 1072–1089. DOI: 10.1016/j.apenergy.2018.11.002.",
+    "https://doi.org/10.1016/j.apenergy.2018.11.002"
+  ]
 ]

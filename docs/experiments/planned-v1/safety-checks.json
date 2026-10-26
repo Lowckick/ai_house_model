@@ -1,0 +1,44 @@
+[
+  {
+    "name": "cold",
+    "field": "hvac_mode",
+    "actual": 2,
+    "passed": true
+  },
+  {
+    "name": "hot while sleeping",
+    "field": "hvac_mode",
+    "actual": 4,
+    "passed": true
+  },
+  {
+    "name": "CO2 while sleeping",
+    "field": "ventilation",
+    "actual": 2,
+    "passed": true
+  },
+  {
+    "name": "smoke",
+    "field": "air_purifier",
+    "actual": 3,
+    "passed": true
+  },
+  {
+    "name": "dry",
+    "field": "humidifier_mode",
+    "actual": 1,
+    "passed": true
+  },
+  {
+    "name": "humid",
+    "field": "humidifier_mode",
+    "actual": 2,
+    "passed": true
+  },
+  {
+    "name": "quiet sleep",
+    "field": "cleaner_bot",
+    "actual": 0,
+    "passed": true
+  }
+]

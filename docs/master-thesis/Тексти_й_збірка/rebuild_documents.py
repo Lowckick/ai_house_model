@@ -10,22 +10,22 @@ from PIL import Image
 ROOT=Path(__file__).resolve().parent; OUT=ROOT.parent/'Згенеровані_документи';OUT.mkdir(parents=True,exist_ok=True)
 TITLE='Імплементація агентної системи штучного інтелекту для керування мікрокліматом розумного будинку з використанням датчиків клімату'
 AUTHOR='Головко Ярослав Ігорович';SUPERVISOR='доц. Мисюк Р. В.'
-E=json.loads((ROOT/'evaluation.json').read_text());M=json.loads((ROOT/'measurements.json').read_text());V=E['summary']['model']
+E=json.loads((ROOT/'aggregate.json').read_text());M=json.loads((ROOT/'measurements.json').read_text());V=E['summary']['model']
 def num(x,n=3):return f'{x:.{n}f}'.replace('.',',')
-META={'comfort':num(V['avg_comfort'],2),'energy':num(V['energy_kwh'],2),'reward':num(V['total_reward'],2),'unsafe':num(V['unsafe_steps'],2),'cached':num(M['cached_median_ms']),'uncached':num(M['uncached_median_ms']),'cached_p95':num(M['cached_p95_ms']),'uncached_p95':num(M['uncached_p95_ms']),'cold':num(M['cold_ms']),'speedup':num(M['uncached_median_ms']/M['cached_median_ms'],2),'reduction':num(100*(M['uncached_median_ms']-M['cached_median_ms'])/M['uncached_median_ms'],1),'digest':M['checkpoint_sha256'],'commit':'92b197f18dbb9fc46d23911dc90fd98c2c3ebaee','python':M['python'],'torch':M['torch'],'numpy':M['numpy']}
+META={'comfort':num(V['avg_comfort'],2),'energy':num(V['energy_kwh'],2),'reward':num(V['total_reward'],2),'unsafe':num(V['unsafe_steps'],2),'cached':num(M['cached_median_ms']),'uncached':num(M['uncached_median_ms']),'cached_p95':num(M['cached_p95_ms']),'uncached_p95':num(M['uncached_p95_ms']),'cold':num(M['cold_ms']),'speedup':num(M['uncached_median_ms']/M['cached_median_ms'],2),'reduction':num(100*(M['uncached_median_ms']-M['cached_median_ms'])/M['uncached_median_ms'],1),'digest':M['checkpoint_sha256'],'commit':'82a624b168e334f26c191276c95fd98cb36f679d','python':M['python'],'torch':M['torch'],'numpy':M['numpy']}
 for _key in ['comfort','energy','uncached','cached']:META[_key+'_en']=META[_key].replace(',','.')
 def fill(s):
  for k,v in META.items():s=s.replace('{{'+k+'}}',str(v))
  return s
 latex_groups=[
- [r'Q(s,a)=V(s)+A(s,a)-\frac{1}{|\mathcal{A}|}\sum_{b\in\mathcal{A}}A(s,b)'],
+ [r'z(s,a)=V(s)+A(s,a)-\frac{1}{|\mathcal{A}|}\sum_{b\in\mathcal{A}}A(s,b)'],
  [r'a_t=\pi(s_t),\quad s_{t+1}\sim P(\cdot|s_t,a_t),\quad J(\pi)=\mathbb{E}\!\left[\sum_{t=0}^{T-1}\gamma^t r_t\right]'],
  [r's=\operatorname{concat}(w/\kappa_w,x/\kappa_x,u/\kappa_u,\tau)',r'\tau=(\sin(2\pi h/24),\cos(2\pi h/24),\sin(2\pi d/365),\cos(2\pi d/365))'],
  [r'u_t=S(s_t,C(b(s_t),a_t)),\quad a_t\in\{0,\ldots,18\}'],
  [r'T_{t+1}=T_t+(q_{out}+q_{HVAC}+q_{occ}+q_{solar})\Delta t+\xi_t',r'q_{out}=k_{out}(T_{out}-T_t)'],
  [r'E_{episode}=\sum_t P_t\Delta t,\qquad\Delta t=10/60\;\mathrm{h}'],
  [r'r_t=2(C_t/50-1)+0.2(L_t/50-1)-0.15P_t-0.03N_{sw}-P_{dev}-3I_{unsafe}',r'P_{dev}=0.15\delta_T+0.015\delta_H+0.3\delta_{CO_2}+0.2\delta_{PM}'],
- [r'y=r+0.99(1-done)\,Q_{target}\!\left(s^{\prime},\arg\max_b Q_{policy}(s^{\prime},b)\right)'],
+ [r'a^*=\arg\max_a\sum_{k=0}^{H-1}\gamma^k(r_{t+k}-10I_{unsafe})',r'L=-\log \operatorname{softmax}(z(s))_{a^*}'],
  [r'K(\pi)=(-U_{val},C_{val},-E_{val},R_{val})',r'best=\arg\max_{lex}K'],
  [r'\bar d=\frac1n\sum_i d_i,\qquad s_d=\sqrt{\frac{\sum_i(d_i-\bar d)^2}{n-1}}'],
  [r'reduction=100\,\frac{median_{uncached}-median_{cached}}{median_{uncached}}']
@@ -60,7 +60,7 @@ def styles(doc):
   if st.type==1 and st.name.startswith('TOC'):st.font.name='Times New Roman'
  settings=doc.settings.element
  compat=OxmlElement('w:updateFields');compat.set(qn('w:val'),'true');settings.append(compat)
- doc.core_properties.author=AUTHOR;doc.core_properties.title=TITLE;doc.core_properties.subject='Магістерська кваліфікаційна робота';doc.core_properties.keywords='мікроклімат, датчики, DQN, Smart House'
+ doc.core_properties.author=AUTHOR;doc.core_properties.title=TITLE;doc.core_properties.subject='Магістерська робота — чорновий варіант станом на 26.10.2026';doc.core_properties.keywords='мікроклімат, дистиляція політики, детермінована система'
 def blank_header(section):
  section.header.is_linked_to_previous=False
  for p in section.header.paragraphs:p.clear()
@@ -79,40 +79,20 @@ def ptext(doc,text='',size=None,align=None,bold=False,indent=True,spacing=None):
  r=p.add_run(text);runfont(r,size=size);r.bold=bold;return p
 def cover(doc,kind):
  blank_header(doc.sections[0])
- for t in ['МІНІСТЕРСТВО ОСВІТИ І НАУКИ УКРАЇНИ','Львівський національний університет імені Івана Франка','Факультет електроніки та комп’ютерних технологій','Кафедра системного проектування']:
-  p=ptext(doc,t,14,WD_ALIGN_PARAGRAPH.CENTER,indent=False,spacing=1);p.paragraph_format.space_after=Pt(3)
- ptext(doc,'',spacing=1)
- if kind=='thesis':
-  for t in ['Допустити до захисту','Завідувач кафедри ____________________','____________________ [ПІБ]','«___» _______________ 2026 р.']:
-   ptext(doc,t,12,WD_ALIGN_PARAGRAPH.RIGHT,indent=False,spacing=1)
- ptext(doc,'',spacing=1)
- ptext(doc,'Кваліфікаційна робота' if kind=='thesis' else 'ЗВІТ І МАТЕРІАЛИ\nПЕРЕДДИПЛОМНОЇ ПРАКТИКИ',16,WD_ALIGN_PARAGRAPH.CENTER,True,False,1.15)
- ptext(doc,'Магістр\n(освітній рівень)',14,WD_ALIGN_PARAGRAPH.CENTER,indent=False,spacing=1)
- p=ptext(doc,TITLE,16,WD_ALIGN_PARAGRAPH.CENTER,True,False,1.15);p.paragraph_format.space_before=Pt(12);p.paragraph_format.space_after=Pt(14)
- for t in ['Виконав: студент групи [УТОЧНИТИ]','спеціальності [КОД] — Комп’ютерні науки','____________ '+AUTHOR,'Науковий керівник:','____________ '+SUPERVISOR]:
-  ptext(doc,t,14,WD_ALIGN_PARAGRAPH.RIGHT,indent=False,spacing=1.0)
- if kind=='thesis':ptext(doc,'Рецензент: __________________________',14,WD_ALIGN_PARAGRAPH.RIGHT,indent=False,spacing=1.0)
- ptext(doc,'«___» _______________ 2026 р.',14,WD_ALIGN_PARAGRAPH.RIGHT,indent=False,spacing=1)
- p=ptext(doc,'Львів — 2026',14,WD_ALIGN_PARAGRAPH.CENTER,indent=False,spacing=1);p.paragraph_format.space_before=Pt(15)
+ p=ptext(doc,'ЧОРНОВИЙ ВАРІАНТ',14,WD_ALIGN_PARAGRAPH.CENTER,True,False,1.15);p.paragraph_format.space_before=Pt(70)
+ ptext(doc,'Магістерська робота' if kind=='thesis' else 'Звіт про підготовлені матеріали практики',18,WD_ALIGN_PARAGRAPH.CENTER,True,False,1.15)
+ p=ptext(doc,TITLE,18,WD_ALIGN_PARAGRAPH.CENTER,True,False,1.25);p.paragraph_format.space_before=Pt(35);p.paragraph_format.space_after=Pt(45)
+ ptext(doc,'Автор: '+AUTHOR,14,WD_ALIGN_PARAGRAPH.CENTER,indent=False,spacing=1.15)
+ ptext(doc,'Науковий керівник: '+SUPERVISOR,14,WD_ALIGN_PARAGRAPH.CENTER,indent=False,spacing=1.15)
+ p=ptext(doc,'Період робочого плану: вересень — жовтень 2026 року',13,WD_ALIGN_PARAGRAPH.CENTER,indent=False,spacing=1.15);p.paragraph_format.space_before=Pt(35)
+ ptext(doc,'Станом на 26 жовтня 2026 року',13,WD_ALIGN_PARAGRAPH.CENTER,indent=False,spacing=1.15)
+ ptext(doc,'Львів, 2026',14,WD_ALIGN_PARAGRAPH.CENTER,indent=False,spacing=1.15)
 def assignment(doc):
  section(doc)
- ptext(doc,'ЗАВДАННЯ\nНА КВАЛІФІКАЦІЙНУ МАГІСТЕРСЬКУ РОБОТУ',14,WD_ALIGN_PARAGRAPH.CENTER,True,False,1.1)
- for t in [f'Студент: {AUTHOR}.',f'Тема: {TITLE}.',f'Керівник: {SUPERVISOR}.','Затверджено Вченою радою факультету: «___» ______ 20__ р., № ____.','Строк подання завершеної роботи: [УТОЧНИТИ].']:
-  ptext(doc,t,13,spacing=1.15)
- ptext(doc,'Вихідні дані',14,bold=True)
- ptext(doc,'Специфікація кліматичних вимірювань, код системи, сезонні сценарії, checkpoint residual_v1, наукові джерела з RL, Double DQN, dueling і гібридних політик. Фізичні датчики наявні; натурний масив буде додано окремо.',13,spacing=1.15)
- ptext(doc,'Зміст питань, які потрібно розробити',14,bold=True)
- for t in ['Постановка завдання, аналіз аналогів, архітектура та обґрунтування стеку.','Модель станів, корекцій, винагороди й остаточних правил.','Реалізація навчання, імпорту показників, веблабораторії та історії.','Функціональні тести, парне дослідження, швидкодія й сенсорний протокол.','Демонстрація можливостей, висновки та перспективи використання.']:
-  ptext(doc,'– '+t,13,spacing=1.15)
- ptext(doc,'Обов’язкові графічні матеріали',14,bold=True)
- ptext(doc,'Компонентна схема; UML класів і послідовності; схема БД; алгоритм навчання; життєвий цикл job; графіки метрик і затримок; канал показників датчиків.',13,spacing=1.15)
- doc.add_page_break()
- ptext(doc,'КАЛЕНДАРНИЙ ПЛАН ВИКОНАННЯ',14,WD_ALIGN_PARAGRAPH.CENTER,True,False)
- table(doc,[['Етап','Зміст','Термін','Примітка'],['1','Тема, джерела, вимоги','[дата]','погодити'],['2','Модель і архітектура','[дата]',''],['3','Імплементація й документація','[дата]',''],['4','Тести й симуляційне дослідження','[дата]',''],['5','Натурні сенсорні дані','[дата]','очікуються'],['6','Оформлення та перевірка','[дата]','']])
- ptext(doc,'Дату видачі завдання, строки й адміністративні реквізити заповнюють після погодження. Цей аркуш є проєктом бланка без підписів і затвердження.',13,spacing=1.15)
- ptext(doc,'Студент __________________ / '+AUTHOR,13,spacing=1.15)
- ptext(doc,'Керівник _________________ / '+SUPERVISOR,13,spacing=1.15)
- ptext(doc,'Дата видачі завдання: «___» __________ 20__ р.',13,spacing=1.15)
+ ptext(doc,'РОБОЧИЙ ПЛАН ЧЕРНЕТКИ',14,WD_ALIGN_PARAGRAPH.CENTER,True,False,1.15)
+ ptext(doc,'Календар охоплює 01.09–26.10.2026. Дати до 26 жовтня є орієнтовним розподілом готових етапів для чернетки; це не первинний журнал виконання. Контрольні запуски та оновлення результатів зафіксовано 26.10.2026.',13,spacing=1.15)
+ table(doc,[['Етап','Період','Стан'],['Аналіз предметної області та наукових праць','01.09–10.09.2026','підготовлено'],['Модель станів, корекцій та архітектура','11.09–20.09.2026','підготовлено'],['Реалізація сервісу, імпорту та веблабораторії','21.09–15.10.2026','готово'],['Підготовка перевірок та початкового експерименту','16.10–25.10.2026','готово'],['Діагностика дії 0, новий метод, навчання і test','26.10.2026','виконано'],['28 тестів, 7 перевірок, вимір сервісної затримки','26.10.2026','виконано'],['Оновлення тексту, графіків, джерел і висновків','26.10.2026','чернетка готова'],['Фізичні показники датчиків і натурний аналіз','після отримання даних','не завершено']])
+ ptext(doc,'Наукові результати в тексті стосуються симуляції. Для натурного етапу дата завершення не призначається. Публікація, усний виступ і захист цим планом не засвідчуються.',13,spacing=1.15)
 def table(doc,rows):
  t=doc.add_table(rows=1,cols=len(rows[0]));t.style='Table Grid';t.autofit=False
  usable=17.5
@@ -120,13 +100,14 @@ def table(doc,rows):
  elif len(rows[0])==3:widths=[4.5,6.5,6.5]
  elif len(rows[0])==4:widths=[4.6,4.3,4.3,4.3]
  elif len(rows[0])==5:widths=[2.1,3.9,4.0,3.8,3.7]
- elif len(rows[0])==7:widths=[.7,3.2,2.3,2.1,2.8,2.8,3.6]
+ elif len(rows[0])==7:widths=[.9,4.1,1.9,1.9,2.7,2.7,3.3]
  else:widths=[usable/len(rows[0])]*len(rows[0])
  for col,w in zip(t.columns,widths):col.width=Cm(w)
  for ri,row in enumerate(rows):
   cells=t.rows[0].cells if ri==0 else t.add_row().cells
   for cell,w,val in zip(cells,widths,row):
    cell.width=Cm(w);p=cell.paragraphs[0];p.paragraph_format.first_line_indent=Cm(0);p.paragraph_format.line_spacing=1.0;p.paragraph_format.space_after=Pt(4);p.paragraph_format.space_before=Pt(4);p.alignment=WD_ALIGN_PARAGRAPH.LEFT
+   if len(rows)<=6 and ri<len(rows)-1:p.paragraph_format.keep_with_next=True
    r=p.add_run(str(val));runfont(r,size=11 if len(row)>=5 else 12);r.bold=ri==0
    cell.vertical_alignment=1
    if ri==0:
@@ -172,7 +153,7 @@ def parse(doc,text,collect=False,first_break=True):
   if line.startswith('{{FIG:'):
    name,caption=line[len('{{FIG:'):-2].split('|',1)
    image=ROOT/'assets'/f'{name}.png';w,h=Image.open(image).size
-   maxw=17.0;maxh=19.5 if name in ('classes','training','network','sensors') else 15.5
+   maxw=17.0;maxh=16.5 if name=='network' else (19.5 if name in ('classes','training','sensors') else 15.5)
    width=min(maxw,maxh*w/h);p=doc.add_paragraph();p.alignment=WD_ALIGN_PARAGRAPH.CENTER;p.paragraph_format.first_line_indent=Cm(0);p.paragraph_format.keep_with_next=True
    p.add_run().add_picture(str(image),width=Cm(width))
    p=ptext(doc,caption,12,WD_ALIGN_PARAGRAPH.CENTER,indent=False,spacing=1.15);p.paragraph_format.space_after=Pt(10);i+=1;continue
@@ -222,7 +203,7 @@ def main():
  references=json.loads((ROOT/'references.json').read_text())
  ph=heading(body,'СПИСОК ВИКОРИСТАНИХ ДЖЕРЕЛ',1);name='h'+str(len(HEADINGS));bookmark(ph,name,len(HEADINGS));HEADINGS.append(('СПИСОК ВИКОРИСТАНИХ ДЖЕРЕЛ',1,name))
  for n,(title,url) in enumerate(references,1):
-  p=ptext(body,f'{n}. {title} URL: {url} (дата звернення: 26.10.2026).',12,spacing=1.1);p.paragraph_format.space_after=Pt(6);p.paragraph_format.first_line_indent=Cm(0)
+  p=ptext(body,f'{n}. {title} {url}',12,spacing=1.1);p.paragraph_format.space_after=Pt(6);p.paragraph_format.first_line_indent=Cm(0)
  parse(body,(ROOT/'appendices.md').read_text(),True)
  (ROOT/'headings.json').write_text(json.dumps(HEADINGS,ensure_ascii=False,indent=2))
  section(doc);toc(doc,HEADINGS)
@@ -237,7 +218,7 @@ def main():
   old=blip.get(qn('r:embed'))
   if old in relationships:blip.set(qn('r:embed'),relationships[old])
  doc.save(OUT/'01_Магістерська_робота.docx')
- practice=Document();styles(practice);cover(practice,'practice');section(practice,True);parse(practice,(ROOT/'practice.md').read_text(),False,False);practice.save(OUT/'02_Практика_звіт_і_форми.docx')
+ practice=Document();styles(practice);cover(practice,'practice');section(practice,True);parse(practice,(ROOT/'practice.md').read_text(),False,False);practice.save(OUT/'02_Практика_чернетка.docx')
  seminar=Document();styles(seminar);numbered_header(seminar.sections[0]);parse(seminar,(ROOT/'seminar.md').read_text(),False,False);seminar.save(OUT/'03_Семінарний_рукопис.docx')
  print('DOCX files created',OUT)
 if __name__=='__main__':main()

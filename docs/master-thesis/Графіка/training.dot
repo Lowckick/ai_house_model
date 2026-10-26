@@ -1,20 +1,13 @@
-digraph G { graph [rankdir=TB, bgcolor="white", pad="0.2", nodesep="0.35", ranksep="0.6"]; node [fontname="DejaVu Sans", fontsize=11, shape=box, style="rounded,filled", fillcolor="#edf3f8", color="#315474", margin="0.18,0.12"]; edge [fontname="DejaVu Sans", fontsize=9,color="#315474"];
-
- a [label="Фіксація конфігурації та seed"];
- b [label="Train: 2023–2024
-12 експертних епізодів / seed"];
- c [label="Імітаційний warmup
-5 епох • мітка дії 0"];
- d [label="Validation: 2025
-оцінка кандидата episode=0"];
- e [label="RL: 30 епізодів / seed
-replay + Double DQN"];
- f [label="Validation кожні 5 епізодів
-лексикографічний відбір"];
- g [label="Обрати seed за validation
-зафіксувати SHA256 checkpoint"];
- h [label="Test: 2026, seed 20000
-12 сценаріїв × 144 кроки"];
- a->b->c->d->e->f;f->e [label="наступний інтервал"];f->g [label="завершено"];g->h;
-
+digraph G {
+graph [rankdir=TB,bgcolor="white",pad="0.2",nodesep="0.3",ranksep="0.45"];
+node [fontname="DejaVu Sans",fontsize=11,shape=box,style="rounded,filled",fillcolor="#edf3f8",color="#315474",margin="0.15,0.1"];
+edge [fontname="DejaVu Sans",fontsize=9,color="#315474"];
+a [label="Фіксація конфігурації\nКанонічний seed 42"];
+b [label="Train: 24 епізоди\n1728 станів на базових і вчительських траєкторіях"];
+c [label="19 корекцій × 6 кроків у копіях фізики\nReward v2 та додатковий штраф за порушення"];
+d [label="Навчання за мітками вчителя\nCrossEntropy • 30 епох"];
+e [label="Validation кожні 5 епох\n6 сценаріїв, seed 41000\nПорушення → комфорт → енергія → винагорода"];
+f [label="Зберегти selection.json і SHA256 best.pt\nдо відкриття test"];
+g [label="Незмінний checkpoint\n3 test seed × 20 епізодів × 144 кроки"];
+a->b->c->d->e; e->d [label="ще епохи"]; e->f [label="навчання завершено"]; f->g;
 }

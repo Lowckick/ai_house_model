@@ -203,6 +203,13 @@ def main(argv=None):
     p_train.add_argument("--resume", help="Warm start from a residual checkpoint; replay buffer is regenerated")
     p_train.add_argument("--reference-model", help="Optional old checkpoint to evaluate on identical test scenarios")
 
+    p_planned = sub.add_parser("train-planned", help="Distil nontrivial corrections from counterfactual TRAIN rollouts")
+    p_planned.add_argument("--output-dir", required=True)
+    p_planned.add_argument("--seed", type=int, default=42)
+    p_planned.add_argument("--episodes", type=int, default=24)
+    p_planned.add_argument("--horizon", type=int, default=6)
+    p_planned.add_argument("--epochs", type=int, default=30)
+
     # simulate
     p_sim = sub.add_parser("simulate", help="Live simulation (inference only)")
     p_sim.add_argument("--no-api", action="store_true", help="Skip weather API")
@@ -264,6 +271,15 @@ def main(argv=None):
                  "evaluate": cmd_evaluate}[args.command](args)
         except (OSError, ValueError, RuntimeError, KeyError) as exc:
             parser.exit(2, f"Command failed: {exc}\n")
+    elif args.command == "train-planned":
+        import torch
+        from smart_house.ml.planning import train_planned
+        torch.set_num_threads(2)
+        try:
+            train_planned(args.output_dir, seed=args.seed, episodes=args.episodes,
+                          horizon=args.horizon, epochs=args.epochs)
+        except (OSError, ValueError, RuntimeError) as exc:
+            parser.exit(2, f"Training failed: {exc}\n")
     elif args.command == "train":
         try:
             cmd_train(args)

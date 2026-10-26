@@ -13,7 +13,7 @@ ModelLab
 ImportService
 валідація • рекомендації"];
  model [label="«component»
-Dueling Double DQN
+Навчена політика
 54 ознаки / 19 корекцій"];
  rules [label="«component»
 RuleLayer

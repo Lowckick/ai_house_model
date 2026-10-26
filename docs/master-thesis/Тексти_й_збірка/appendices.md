@@ -1,6 +1,6 @@
 # ДОДАТОК А. СТРУКТУРА ПРОГРАМИ Й ВАЖЛИВІ ФРАГМЕНТИ КОДУ
 
-Фрагменти відповідають репозиторію й коміту, зазначеним у списку джерел. Повний код доступний у GitHub. Наведені функції є редагованим текстом, а не зображенням. Довгі рядки можуть переноситися засобами редактора без зміни їхнього програмного змісту.
+Фрагменти відповідають версії коду {{commit}}. Ідентифікацію програмних артефактів наведено в електронному пакеті окремо від списку наукової літератури. Наведені функції є редагованим текстом, а не зображенням. Довгі рядки можуть переноситися засобами редактора без зміни їхнього програмного змісту.
 
 ## А.1 Модулі проєкту
 
@@ -13,7 +13,8 @@ smart_house/environment/weather.py   погодний провайдер і ге
 smart_house/ml/agent.py              мережа, replay, reward, checkpoint
 smart_house/ml/controller.py         вчитель і дискретні корекції
 smart_house/ml/rule_layer.py         остаточні правила та пояснення
-smart_house/ml/trainer.py            навчальний цикл і validation
+smart_house/ml/trainer.py            загальний навчальний цикл
+smart_house/ml/planning.py           модельні мітки та дистиляція політики
 smart_house/ml/experiments.py        multi-seed і підсумковий відбір
 smart_house/analytics/comparison.py  парне оцінювання
 smart_house/analytics/ingestion.py   спільний сервіс аналізу
@@ -70,96 +71,55 @@ def residual_devices(index, indoor, weather):
     return devices
 ```
 
-## А.4 Формування Double DQN цілі
+## А.4 Оцінка корекцій у копіях симулятора
 
-Файл: smart_house/ml/agent.py.
+Файл: smart_house/ml/planning.py. Учитель використовується для підготовки навчальних міток. Фрагмент є точним витягом поточної функції; він не виконується у вебрежимі застосування моделі.
 
 ```python
-    def select_action(self, state: np.ndarray) -> int:
-        if self.epsilon > 0 and self._rng.random() < self.epsilon:
-            return self._rng.randrange(self.n_actions)
-        with torch.no_grad():
-            s = torch.FloatTensor(state).unsqueeze(0).to(self.device)
-            q = self.policy_net(s)
-            return int(q.argmax(dim=1).item())
+def rollout_scores(physics, previous, weather, reward_fn, horizon=6):
+    """Common random numbers across candidates; never mutate source simulator.
 
-    def learn(self) -> Optional[float]:
-        if len(self.replay) < self.BATCH_SIZE:
-            return None
-
-        batch = self.replay.sample(self.BATCH_SIZE)
-        states = torch.FloatTensor(np.array([t.state for t in batch])).to(self.device)
-        actions = torch.LongTensor([t.action for t in batch]).unsqueeze(1).to(self.device)
-        rewards = torch.FloatTensor([t.reward for t in batch]).to(self.device)
-        next_states = torch.FloatTensor(np.array([t.next_state for t in batch])).to(self.device)
-        dones = torch.FloatTensor([float(t.done) for t in batch]).to(self.device)
-
-        # Double DQN: policy net selects action, target net evaluates
-        current_q = self.policy_net(states).gather(1, actions).squeeze()
-        with torch.no_grad():
-            best_actions = self.policy_net(next_states).argmax(dim=1, keepdim=True)
-            next_q = self.target_net(next_states).gather(1, best_actions).squeeze()
-            target_q = rewards + (0.99 if self.action_mode == "residual_v1" else self.GAMMA) * next_q * (1 - dones)
-
-        loss = self.loss_fn(current_q, target_q)
-        demonstrations = torch.tensor([t.demonstration for t in batch], dtype=torch.bool, device=self.device)
-        if demonstrations.any():
-            # Retain a small imitation anchor while RL learns useful corrections.
-            logits = self.policy_net(states[demonstrations])
-            loss = loss + 0.1 * nn.functional.cross_entropy(logits, actions[demonstrations].squeeze(1))
-        self.optimizer.zero_grad()
-        loss.backward()
-        nn.utils.clip_grad_norm_(self.policy_net.parameters(), 1.0)
-        self.optimizer.step()
-
-        self.steps_done += 1
-        if self.steps_done % self.TARGET_UPDATE_FREQ == 0:
-            self.target_net.load_state_dict(self.policy_net.state_dict())
-
-        self.epsilon = max(0.02 if self.action_mode == "residual_v1" else self.EPSILON_END,
-                           self.epsilon * self.EPSILON_DECAY)
-        loss_val = float(loss.item())
-        self.losses.append(loss_val)
-        return loss_val
+    Each candidate repeatedly applies its correction for the short horizon.
+    The teacher has simulator/forecast access; the deployed student does not.
+    """
+    if type(horizon) is not int or horizon < 1 or not weather:
+        raise ValueError('Positive horizon and nonempty weather required')
+    scores = []
+    rules = RuleLayer()
+    for action in range(19):
+        trial, devices = deepcopy(physics), deepcopy(previous)
+        score = 0.0
+        for index, snapshot in enumerate(weather[:horizon]):
+            chosen = rules.apply(residual_devices(action, trial.state, snapshot), trial.state, snapshot)
+            state = trial.step(snapshot, chosen)
+            unsafe = state.temperature_c < 5 or state.temperature_c > 32 or state.co2_ppm > 1500 or state.pm25_ugm3 > 55
+            score += .99**index * (reward_fn.compute(state, chosen, devices) - 10 * int(unsafe))
+            devices = chosen
+        scores.append(score)
+    return scores
 ```
+
+У train_planned індекс обирається через max(range(19), key=lambda a: (scores[a], -a)). За рівності переважає менший індекс. Збереження selection.json відбувається до compare_controllers на test. Мережа навчається функцією imitate через cross_entropy; виходи є логітами політики.
 
 ## А.5 Спільний сервіс аналізу вимірювань
 
-Файл: smart_house/analytics/ingestion.py.
+Файл: smart_house/analytics/ingestion.py. У першому витягу пропущено цикл рекомендацій; місце скорочення позначено коментарем. Поле distilled перемикає пояснення на найбільший логіт політики. Для інших підтримуваних checkpoint збережено повідомлення про Q-оцінку.
 
 ```python
-    def analyze_text(self, filename, text):
-        states, report = inspect_readings(text, Path(filename).suffix)
-        if not report['valid']:
-            raise ValidationError(report)
-        with self._lock:
-            agent = self._load()
-            results = []
-            for indoor in states:
-                weather = assumed_weather(indoor)
-                action = agent.select_action(encode_state(indoor, weather, DeviceState()))
-                raw = agent.decode_action(action, DeviceState(), indoor, weather)
-                recommended, changes = RuleLayer().apply_with_explanations(raw, indoor, weather)
-                results.append({'timestamp': indoor.timestamp.isoformat(), 'indoor': asdict(indoor),
-                                'weather': asdict(weather), 'action_index': action, 'action_mode': agent.action_mode,
-                                'model_devices': asdict(raw), 'recommended_devices': asdict(recommended),
-                                'deterministic_devices': asdict(deterministic_devices(indoor, weather)),
-                                'explanations': [
-                                    {'source': 'model', 'reason': 'Обрано дію з найбільшою Q-оцінкою моделі (epsilon=0). ' +
-                                     ('Політика коригує детермінований контролер; дія 0 залишає його рішення. ' if agent.action_mode == 'residual_v1' else '') +
-                                     'Причини нейронної оцінки не інтерпретуються; зміни правил наведено окремо.'},
-                                    *(teacher_explanations(indoor, weather) if agent.action_mode == "residual_v1" else []),
-                                    *changes]})
-            digest = self._digest
-        return {'count': len(results), 'validation': report, 'readings': results,
-                'model_sha256': digest}
+def analyze_text(self, filename, text):
+    states, report = inspect_readings(text, Path(filename).suffix)
+    if not report['valid']:
+        raise ValidationError(report)
+    with self._lock:
+        agent = self._load()
+        distilled = getattr(agent, 'checkpoint_metadata', {}).get(
+            'method') == 'counterfactual_policy_distillation_v1'
+        # Далі: select_action, decode_action, RuleLayer,
+        # формування recommendations і пояснень.
 
-    def import_text(self, filename, text):
-        result = self.analyze_text(filename, text)
-        ident = self.history.save_import(Path(filename).name, hashlib.sha256(text.encode('utf-8')).hexdigest(),
-                                         result['model_sha256'], result['validation'], result['readings'])
-        return self.history.get_import(ident)
 ```
+
+Метод import_text повторно використовує analyze_text і зберігає результат через History. Вебрежим не викликає планувальник і не перенавчає модель. Для цілісності пакета зберігаються digest checkpoint, валідаційний звіт і фактичні режими до та після правил.
 
 ## А.6 Кеш і запис ручного тесту
 
@@ -307,80 +267,94 @@ HVAC: 0 — вимкнено; 1 — слабкий обігрів; 2 — сил�
 
 # ДОДАТОК Г. ПЕРВИННІ ДАНІ СИМУЛЯЦІЙНОГО ДОСЛІДЖЕННЯ
 
-## Г.1 Початкові умови сценаріїв
+## Г.1 Початкові умови контрольного тестового набору
 
-Таблиця Г.1 — Параметри 12 test-сценаріїв; базовий seed 20000
+Наведено перші 20 test-сценаріїв із базовим seed 61000. Це синтетичні значення, а не записи фізичних датчиків. Дати є модельним часом 2026 року та не задають календар фактичних вимірювань. Повні початкові умови всіх 60 сценаріїв збережено в evaluation.json.
 
-| № | Початок UTC | T, °C | RH, % | CO₂, ppm | PM2.5 | Мешканців* |
+Таблиця Г.1 — Початкові умови test seed 61000
+
+| № | Початок UTC | T, °C | RH, % | CO₂, ppm | PM2.5 | Мешканців |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | 2026-01-03 00:00 | 26.44 | 50.22 | 806.4 | 46.54 | 3 |
-| 2 | 2026-06-13 18:00 | 25.12 | 71.52 | 805.7 | 21.48 | 3 |
-| 3 | 2026-11-09 12:00 | 24.46 | 36.05 | 1385.2 | 30.17 | 3 |
-| 4 | 2026-04-17 18:00 | 16.73 | 45.18 | 1199.8 | 42.52 | 0 |
-| 5 | 2026-09-24 00:00 | 18.68 | 35.44 | 1653.7 | 36.54 | 4 |
-| 6 | 2026-02-26 00:00 | 25.35 | 44.98 | 1473.8 | 60.87 | 4 |
-| 7 | 2026-07-07 12:00 | 18.93 | 56.59 | 1061.5 | 57.99 | 0 |
-| 8 | 2026-12-03 06:00 | 18.99 | 34.67 | 531.7 | 62.72 | 3 |
-| 9 | 2026-05-15 06:00 | 22.98 | 58.90 | 939.1 | 39.29 | 2 |
-| 10 | 2026-10-04 06:00 | 23.47 | 43.69 | 1345.8 | 32.80 | 1 |
-| 11 | 2026-03-12 06:00 | 19.75 | 40.02 | 1431.1 | 25.70 | 1 |
-| 12 | 2026-08-26 12:00 | 26.94 | 79.08 | 1812.2 | 27.53 | 0 |
+| 1 | 2026-01-20 18:00 | 24,01 | 74,40 | 1693,2 | 12,65 | 0 |
+| 2 | 2026-06-24 00:00 | 20,95 | 28,76 | 475,9 | 19,89 | 2 |
+| 3 | 2026-11-21 06:00 | 20,97 | 70,74 | 1323,2 | 15,49 | 1 |
+| 4 | 2026-04-18 18:00 | 25,39 | 75,94 | 1147,2 | 4,22 | 3 |
+| 5 | 2026-09-11 12:00 | 28,76 | 56,14 | 1958,1 | 47,66 | 3 |
+| 6 | 2026-02-18 00:00 | 22,73 | 48,21 | 1658,6 | 42,14 | 0 |
+| 7 | 2026-07-20 12:00 | 18,42 | 28,74 | 652,1 | 27,65 | 4 |
+| 8 | 2026-12-18 06:00 | 27,37 | 78,17 | 1877,8 | 22,81 | 2 |
+| 9 | 2026-05-19 12:00 | 23,56 | 40,24 | 1291,4 | 21,60 | 2 |
+| 10 | 2026-10-09 12:00 | 23,58 | 69,52 | 2112,4 | 23,20 | 0 |
+| 11 | 2026-03-16 06:00 | 16,75 | 25,55 | 1445,9 | 61,20 | 4 |
+| 12 | 2026-08-20 00:00 | 21,79 | 70,62 | 947,0 | 23,84 | 1 |
+| 13 | 2026-01-04 18:00 | 27,40 | 28,06 | 1098,8 | 20,58 | 1 |
+| 14 | 2026-06-13 12:00 | 16,07 | 55,66 | 674,9 | 35,64 | 1 |
+| 15 | 2026-11-13 00:00 | 16,19 | 33,50 | 2180,5 | 34,90 | 4 |
+| 16 | 2026-04-22 06:00 | 24,34 | 38,41 | 1033,8 | 35,69 | 4 |
+| 17 | 2026-09-06 12:00 | 17,52 | 56,84 | 895,4 | 9,70 | 4 |
+| 18 | 2026-02-18 18:00 | 23,43 | 28,17 | 1940,9 | 18,73 | 4 |
+| 19 | 2026-07-25 12:00 | 26,35 | 53,34 | 2165,3 | 62,15 | 0 |
+| 20 | 2026-12-21 18:00 | 26,34 | 48,26 | 1071,7 | 15,95 | 3 |
 
-*Поле occupants задає параметр сценарію для моделі присутності. Фактична присутність на першому кроці залежить також від початкової години й моделі активності. PM2.5 подано в мкг/м³. Всі значення в цій таблиці синтетичні.
+## Г.2 Парні результати контрольного набору
 
-## Г.2 Посценарні результати
+Таблиця Г.2 — Модель / детермінована система, test seed 61000
 
-Таблиця Г.2 — Результати гібридної політики; детермінований контролер отримав ті самі значення
-
-| № | Комфорт, % | Енергія, кВт·год | Винагорода | Небезпечні кроки |
+| № | Комфорт, % | Енергія, кВт·год | Винагорода | Кроки поза межами |
 | --- | --- | --- | --- | --- |
-| 1 | 88.5233 | 27.8825 | 203.8453 | 0 |
-| 2 | 87.6551 | 26.6050 | 199.2255 | 0 |
-| 3 | 83.4594 | 27.2158 | 160.3119 | 0 |
-| 4 | 96.0506 | 17.4067 | 266.1969 | 0 |
-| 5 | 81.3343 | 21.0375 | 124.4638 | 11 |
-| 6 | 45.6720 | 31.4867 | -197.3409 | 3 |
-| 7 | 94.7362 | 18.9117 | 248.1939 | 2 |
-| 8 | 74.3176 | 27.6458 | 7.5687 | 22 |
-| 9 | 89.2997 | 22.5042 | 214.8501 | 0 |
-| 10 | 91.9627 | 21.3017 | 234.9574 | 0 |
-| 11 | 89.0640 | 26.5458 | 205.4817 | 0 |
-| 12 | 92.5068 | 18.2650 | 201.0417 | 11 |
+| 1 | 71,938 / 63,393 | 29,053 / 27,350 | 16,787 / -65,794 | 6 / 8 |
+| 2 | 80,093 / 91,327 | 18,648 / 27,033 | 129,992 / 229,661 | 0 / 0 |
+| 3 | 79,203 / 88,525 | 28,272 / 27,090 | 108,847 / 197,715 | 0 / 0 |
+| 4 | 86,864 / 87,031 | 14,646 / 19,069 | 204,527 / 202,186 | 0 / 0 |
+| 5 | 78,431 / 76,642 | 28,067 / 31,889 | 73,550 / 36,035 | 14 / 22 |
+| 6 | 88,640 / 62,510 | 35,430 / 27,080 | 172,028 / -64,384 | 5 / 5 |
+| 7 | 77,921 / 88,339 | 22,093 / 28,203 | 114,813 / 205,747 | 0 / 0 |
+| 8 | 83,826 / 80,801 | 32,048 / 30,283 | 118,759 / 81,967 | 14 / 18 |
+| 9 | 82,916 / 90,408 | 19,731 / 25,312 | 157,148 / 222,675 | 0 / 0 |
+| 10 | 94,644 / 93,521 | 11,097 / 10,775 | 198,128 / 186,328 | 21 / 22 |
+| 11 | 82,032 / 80,759 | 35,913 / 23,753 | 64,725 / 65,398 | 27 / 27 |
+| 12 | 96,641 / 94,924 | 14,683 / 18,804 | 277,591 / 259,872 | 0 / 0 |
+| 13 | 85,747 / 82,894 | 28,984 / 26,767 | 165,876 / 141,916 | 0 / 0 |
+| 14 | 90,997 / 92,088 | 17,904 / 22,235 | 230,614 / 236,931 | 0 / 0 |
+| 15 | 76,316 / 72,450 | 33,978 / 25,422 | -32,299 / -64,189 | 44 / 46 |
+| 16 | 87,932 / 87,038 | 17,753 / 20,322 | 210,168 / 197,996 | 0 / 1 |
+| 17 | 87,190 / 88,916 | 26,884 / 26,646 | 193,370 / 210,131 | 0 / 0 |
+| 18 | 59,114 / 26,839 | 46,840 / 31,157 | -148,777 / -452,705 | 26 / 31 |
+| 19 | 89,673 / 89,709 | 12,423 / 14,175 | 163,210 / 148,860 | 18 / 24 |
+| 20 | 89,057 / 69,690 | 36,648 / 29,286 | 201,928 / 28,407 | 0 / 0 |
 
-## Г.3 Метадані та перевірка відтворення
+## Г.3 Розподіл навчальних міток та остаточні команди
 
-Checkpoint SHA256: {{digest}}. Код: {{commit}}. Параметри: episodes=12, steps=144, seed=20000, split=test, epsilon=0. Версія винагороди comfort_safety_v2. Повні scenario seed та результати без округлення містяться в evaluation.json.
+Таблиця Г.3 — Кількість міток учителя для канонічного навчального seed 42
 
-Файл measurements.json містить 40 некешованих і 40 кешованих спостережень, один cold-start, параметри середовища та сім правилових перевірок. tests.log містить протокол 26 автоматизованих тестів. Векторні рисунки побудовано з цих даних. Округлення в друкованих таблицях не змінює первинні JSON.
-
-# ДОДАТОК Д. ПРОТОКОЛ ДОДАВАННЯ НАТУРНИХ ДАНИХ
-
-## Д.1 Паспорт вимірювань: очікує заповнення
-
-| Поле | Значення |
+| Індекс корекції | Кількість |
 | --- | --- |
-| Модель і серійний / умовний ID датчика | [ДОДАТИ] |
-| Параметри й одиниці | [ДОДАТИ] |
-| Місце встановлення | [ДОДАТИ БЕЗ ПРИВАТНОЇ АДРЕСИ] |
-| Період і часовий пояс | [ДОДАТИ] |
-| Інтервал опитування | [ДОДАТИ] |
-| Похибка за паспортом | [ДОДАТИ ДЖЕРЕЛО] |
-| Калібрування / контрольний прилад | [ДОДАТИ АБО НЕ ВИКОНУВАЛОСЯ] |
-| Пропуски й відмови | [ДОДАТИ] |
-| Фактичні дії обладнання | [ДОДАТИ АБО НЕ ФІКСУВАЛИСЯ] |
+| 0 | 21 |
+| 1 | 446 |
+| 2 | 0 |
+| 3 | 313 |
+| 4 | 0 |
+| 5 | 9 |
+| 6 | 282 |
+| 7 | 37 |
+| 8 | 4 |
+| 9 | 82 |
+| 10 | 50 |
+| 11 | 2 |
+| 12 | 3 |
+| 13 | 57 |
+| 14 | 122 |
+| 15 | 1 |
+| 16 | 0 |
+| 17 | 1 |
+| 18 | 298 |
 
-## Д.2 Послідовність аналізу після отримання даних
+Загалом 1728 міток, з яких лише 21 має індекс 0. Це розподіл учителя на train. Частка відмінних остаточних команд виміряна окремо на test: 2130/2880 та 2190/2880 для seed 71000 і 81000. Збіг чи відмінність індексів не підміняє оцінювання наслідків.
 
-1. Зберегти незмінний оригінальний експорт і його SHA256.
-2. Зафіксувати джерело, одиниці, часовий пояс, інтервал і правила пропусків.
-3. Привести копію даних до контракту без мовчазного видалення некоректних рядків.
-4. Виконати validate-data; окремо зберегти помилки й попередження.
-5. Побудувати графіки й описову статистику лише фактичних показників.
-6. Виконати inference зафіксованого checkpoint із незмінними правилами.
-7. Порахувати частоту команд і остаточних корекцій, показати типові й крайні випадки.
-8. Якщо є історія дій і наступних станів, окремо погодити аналіз наслідків.
-9. Оновити підрозділ 5.8, висновки й анотацію з чітким відокремленням натурних результатів.
+## Г.4 Метадані й відтворення
 
-## Д.3 Обмеження майбутньої інтерпретації
+Підсумковий checkpoint SHA256: {{digest}}. Код: {{commit}}. Канонічний навчальний seed 42, best_epoch=30, validation seed 41000; test seeds 61000, 71000, 81000. Семантика дій residual_v1, метод counterfactual_policy_distillation_v1, звітна винагорода comfort_safety_v2. Підсумковий аналіз охоплює 60 парних добових сценаріїв по 144 кроки.
 
-Сам набір сенсорних показників дозволяє оцінити вхідну якість і рекомендації. Для причинного висновку про економію потрібні зіставні умови, факти виконаних дій і виміряна енергія. Запланований етап не підміняється симуляцією, а відсутній показник не заповнюється вигаданим значенням. До отримання даних підрозділ 5.8 залишається позначеним як незавершений.
+Файл evaluation.json є повним звітом моделі; aggregate.json і per-episode.csv містять похідні узагальнення та неокруглені пари. training-seed-42/43/44.json і selection-seed-42/43/44.json зберігають окремі навчальні запуски. measurements.json містить нові 40 некешованих і 40 кешованих сервісних викликів та сім перевірок checkpoint. benchmark.json містить 20 обчислювальних замірів учня й учителя. tests.log фіксує успіх 28 тестів 26.10.2026.
+
+Електронний пакет також містить diagnostic-baseline-clone.json із негативною діагностикою початкової політики. Він відокремлений від підсумкового evaluation.json і не використовується для розрахунку нових середніх. Натурних вимірювань у наведених таблицях немає.
