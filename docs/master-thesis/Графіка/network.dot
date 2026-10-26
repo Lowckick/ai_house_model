@@ -1,0 +1,15 @@
+digraph G { graph [rankdir=TB, bgcolor="white", pad="0.2", nodesep="0.35", ranksep="0.6"]; node [fontname="DejaVu Sans", fontsize=11, shape=box, style="rounded,filled", fillcolor="#edf3f8", color="#315474", margin="0.18,0.12"]; edge [fontname="DejaVu Sans", fontsize=9,color="#315474"];
+
+ s [label="54 вхідні ознаки"];
+ h1 [label="Linear 54→256
+LayerNorm • ReLU"];
+ h2 [label="Linear 256→256
+LayerNorm • ReLU"];
+ h3 [label="Linear 256→128 • ReLU"];
+ v [label="V: 128→64→1"];
+ a [label="A: 128→64→19"];
+ out [label="Q(s,a) = V(s)+A(s,a)−mean A(s,·)
+131 604 параметри policy_net"];
+ s->h1->h2->h3;h3->v;h3->a;v->out;a->out;
+
+}

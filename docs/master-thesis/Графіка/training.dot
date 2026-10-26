@@ -1,0 +1,20 @@
+digraph G { graph [rankdir=TB, bgcolor="white", pad="0.2", nodesep="0.35", ranksep="0.6"]; node [fontname="DejaVu Sans", fontsize=11, shape=box, style="rounded,filled", fillcolor="#edf3f8", color="#315474", margin="0.18,0.12"]; edge [fontname="DejaVu Sans", fontsize=9,color="#315474"];
+
+ a [label="Фіксація конфігурації та seed"];
+ b [label="Train: 2023–2024
+12 експертних епізодів / seed"];
+ c [label="Імітаційний warmup
+5 епох • мітка дії 0"];
+ d [label="Validation: 2025
+оцінка кандидата episode=0"];
+ e [label="RL: 30 епізодів / seed
+replay + Double DQN"];
+ f [label="Validation кожні 5 епізодів
+лексикографічний відбір"];
+ g [label="Обрати seed за validation
+зафіксувати SHA256 checkpoint"];
+ h [label="Test: 2026, seed 20000
+12 сценаріїв × 144 кроки"];
+ a->b->c->d->e->f;f->e [label="наступний інтервал"];f->g [label="завершено"];g->h;
+
+}

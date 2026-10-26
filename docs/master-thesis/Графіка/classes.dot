@@ -1,0 +1,20 @@
+digraph G {
+ graph [rankdir=TB,bgcolor="white",pad=.2,nodesep=.35,ranksep=.65];
+ node [shape=record,fontname="DejaVu Sans",fontsize=12,style=filled,fillcolor="#edf3f8",color="#315474",margin=".12,.10"];
+ edge [fontname="DejaVu Sans",fontsize=10,color="#315474"];
+ Lab [label="{ModelLab|models; cache\nservices; executor|predict(); submit()\njob(); stats(); rate()}"];
+ Import [label="{ImportService|model_path; history\n_agent; _lock|analyze_text()\nimport_text(); evaluate()}"];
+ Agent [label="{SmartHomeDQNAgent|policy_net; target_net\nreplay; epsilon|select_action(); learn()\ndecode_action(); load()}"];
+ Rule [label="{RuleLayer|MAX_CO2\nMIN_TEMP_SAFETY|apply()\napply_with_explanations()}"];
+ Hist [label="{History|path|connect(); save_import()\nget_import()}"];
+ Sim [label="{IndoorPhysicsSimulator|state; _rng\n_occupancy_sim|reset(); step()}"];
+ Indoor [label="{IndoorState|timestamp; temperature_c\nhumidity_pct; co2_ppm|to_vector()}"];
+ Devices [label="{DeviceState|hvac_mode; ventilation\nair_purifier; lights|to_vector()}"];
+ Lab -> Import [label="0..3",arrowtail=odiamond,dir=back];
+ Import -> Agent [label="0..1",arrowtail=odiamond,dir=back];
+ Import -> Hist [label="1",arrowhead=vee];
+ Import -> Rule [style=dashed,arrowhead=vee,label="uses"];
+ Sim -> Indoor [label="1",arrowtail=diamond,dir=back];
+ Agent -> Devices [style=dashed,arrowhead=vee,label="returns"];
+ Rule -> Devices [style=dashed,arrowhead=vee,label="corrects"];
+}

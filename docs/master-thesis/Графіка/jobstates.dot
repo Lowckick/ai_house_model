@@ -1,0 +1,17 @@
+digraph G { graph [rankdir=LR, bgcolor="white", pad="0.2", nodesep="0.35", ranksep="0.6"]; node [fontname="DejaVu Sans", fontsize=11, shape=box, style="rounded,filled", fillcolor="#edf3f8", color="#315474", margin="0.18,0.12"]; edge [fontname="DejaVu Sans", fontsize=9,color="#315474"];
+
+ queued [label="queued
+задачу збережено"];
+ running [label="running
+окремий агент worker"];
+ completed [label="completed
+метрики та перевірки"];
+ failed [label="failed
+помилка у журналі"];
+ interrupted [label="interrupted
+процес перезапущено"];
+ queued->running;running->completed;running->failed;
+ queued->interrupted [style=dashed,label="перезапуск"];
+ running->interrupted [style=dashed,label="перезапуск"];
+
+}

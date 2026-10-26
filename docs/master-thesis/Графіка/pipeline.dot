@@ -1,0 +1,18 @@
+digraph G { graph [rankdir=TB, bgcolor="white", pad="0.2", nodesep="0.35", ranksep="0.6"]; node [fontname="DejaVu Sans", fontsize=11, shape=box, style="rounded,filled", fillcolor="#edf3f8", color="#315474", margin="0.18,0.12"]; edge [fontname="DejaVu Sans", fontsize=9,color="#315474"];
+
+ s [label="Вимірювання та часові ознаки
+s ∈ R⁵⁴"];
+ b [label="Детермінований контролер b(s)
+порогові режими + правила"];
+ q [label="Q-мережа
+a = argmax Q(s,a)"];
+ apply [label="19 варіантів корекції
+0: залишити b(s)
+1..18: змінити один режим"];
+ safety [label="Остаточний RuleLayer
+пріоритет обмежень над сном"];
+ out [label="Рекомендація / симуляція
+без фізичного IoT-керування"];
+ s -> b;s -> q;b -> apply;q -> apply;apply -> safety;safety -> out;
+
+}

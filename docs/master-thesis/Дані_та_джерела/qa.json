@@ -1,0 +1,45 @@
+{
+  "03_Семінарний_рукопис.pdf": {
+    "pages": 4,
+    "characters": 6073,
+    "outside_page": [],
+    "sparse_pages": [],
+    "unfilled_tokens": [],
+    "mentions_coursework": false,
+    "replacement_chars": 0
+  },
+  "02_Практика_звіт_і_форми.pdf": {
+    "pages": 17,
+    "characters": 15812,
+    "outside_page": [],
+    "sparse_pages": [],
+    "unfilled_tokens": [],
+    "mentions_coursework": false,
+    "replacement_chars": 0
+  },
+  "01_Магістерська_робота.pdf": {
+    "pages": 88,
+    "characters": 131094,
+    "outside_page": [],
+    "sparse_pages": [],
+    "unfilled_tokens": [],
+    "mentions_coursework": false,
+    "replacement_chars": 0,
+    "annotation_words": 195
+  },
+  "01_Магістерська_робота.docx": {
+    "native_equations": 15,
+    "paragraphs": 1412,
+    "images": 12
+  },
+  "02_Практика_звіт_і_форми.docx": {
+    "native_equations": 0,
+    "paragraphs": 319,
+    "images": 0
+  },
+  "03_Семінарний_рукопис.docx": {
+    "native_equations": 0,
+    "paragraphs": 47,
+    "images": 0
+  }
+}
