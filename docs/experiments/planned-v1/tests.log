@@ -1,0 +1,38 @@
+test_background_evaluation_does_not_lock_playground (test_lab.LabTests.test_background_evaluation_does_not_lock_playground) ... ok
+test_checkpoint_replacement_invalidates_cached_result (test_lab.LabTests.test_checkpoint_replacement_invalidates_cached_result) ... ok
+test_http_lab_routes_and_security (test_lab.LabTests.test_http_lab_routes_and_security) ... ok
+test_invalid_sensor_values_are_reported (test_lab.LabTests.test_invalid_sensor_values_are_reported) ... ok
+test_paired_models_safety_regressions_and_persistence (test_lab.LabTests.test_paired_models_safety_regressions_and_persistence) ... ok
+test_predictions_cache_ratings_and_validation (test_lab.LabTests.test_predictions_cache_ratings_and_validation) ... ok
+test_reject_invalid_jobs_and_limit_queue (test_lab.LabTests.test_reject_invalid_jobs_and_limit_queue) ... ok
+test_invalid_training_settings_create_no_run (test_planning.PlanningTests.test_invalid_training_settings_create_no_run) ... ok
+test_rollouts_are_reproducible_and_do_not_mutate_source (test_planning.PlanningTests.test_rollouts_are_reproducible_and_do_not_mutate_source) ... ok
+test_bad_csv (test_readings.ReadingsTests.test_bad_csv) ... ok
+test_defaults_and_presence (test_readings.ReadingsTests.test_defaults_and_presence) ... ok
+test_empty_missing_and_malformed (test_readings.ReadingsTests.test_empty_missing_and_malformed) ... ok
+test_formats_match (test_readings.ReadingsTests.test_formats_match) ... ok
+test_invalid_measurements (test_readings.ReadingsTests.test_invalid_measurements) ... ok
+test_disjoint_scenarios_clock_and_trace (test_training.TrainingTests.test_disjoint_scenarios_clock_and_trace) ... ok
+test_experiment_run_persistence_and_metrics (test_training.TrainingTests.test_experiment_run_persistence_and_metrics) ... Seed 7 ep 1/1: comfort=91.0% reward=12.64 epsilon=0.200
+Best checkpoint: /tmp/tmp8uig9u8m/experiment/seed-7/best.pt (episode 0)
+Seed 8 ep 1/1: comfort=88.5% reward=11.24 epsilon=0.200
+Best checkpoint: /tmp/tmp8uig9u8m/experiment/seed-8/best.pt (episode 0)
+Selected by validation: /tmp/tmp8uig9u8m/experiment/best.pt; test report: /tmp/tmp8uig9u8m/experiment/experiment.json
+ok
+test_residual_semantics_and_checkpoint_compatibility (test_training.TrainingTests.test_residual_semantics_and_checkpoint_compatibility) ... ok
+test_reward_prioritizes_comfort_and_safety (test_training.TrainingTests.test_reward_prioritizes_comfort_and_safety) ... ok
+test_teacher_rollouts_learn_and_no_test_selection (test_training.TrainingTests.test_teacher_rollouts_learn_and_no_test_selection) ... ok
+test_training_reproducible_and_next_weather_aligned (test_training.TrainingTests.test_training_reproducible_and_next_weather_aligned) ... ok
+test_validation_preserves_training_state (test_training.TrainingTests.test_validation_preserves_training_state) ... ok
+test_all_validation_errors_and_warnings (test_workflows.WorkflowTests.test_all_validation_errors_and_warnings) ... ok
+test_comparison_repeatable_and_identical_policies_equal (test_workflows.WorkflowTests.test_comparison_repeatable_and_identical_policies_equal) ... ok
+test_http_upload_validation_history_and_evaluation (test_workflows.WorkflowTests.test_http_upload_validation_history_and_evaluation) ... ok
+test_import_persist_explanations_and_atomic_rejection (test_workflows.WorkflowTests.test_import_persist_explanations_and_atomic_rejection) ... ok
+test_limits_and_duplicate_columns (test_workflows.WorkflowTests.test_limits_and_duplicate_columns) ... ok
+test_safety_wins_over_sleep_and_explanations_match (test_workflows.WorkflowTests.test_safety_wins_over_sleep_and_explanations_match) ... ok
+test_simulation_clock_and_baseline_thresholds (test_workflows.WorkflowTests.test_simulation_clock_and_baseline_thresholds) ... ok
+
+----------------------------------------------------------------------
+Ran 28 tests in 4.005s
+
+OK

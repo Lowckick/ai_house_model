@@ -88,6 +88,7 @@ def _compare(agent, episodes, steps, seed, split):
     variability = {metric: (stdev(t['model'][metric] - t['deterministic'][metric] for t in trials)
                             if episodes > 1 else None) for metric in metrics}
     return {'protocol_version': 2, 'split': split, 'action_mode': agent.action_mode,
+            'policy_method': getattr(agent, 'checkpoint_metadata', {}).get('method', 'DQN'),
             'reward_version': agent.reward_fn.VERSION, 'episodes': episodes, 'steps_per_episode': steps, 'seed': seed,
             'summary': summary, 'delta_model_minus_deterministic': delta,
             'paired_delta_stddev': variability, 'trials': trials,
