@@ -1,0 +1,916 @@
+{
+  "checkpoint_sha256": "c57f75d2594db8b7d9499a17e12d76f51a56155945c36dc1734d2ffb817ebd43",
+  "checkpoint_unchanged": true,
+  "model": "data/models/improved-v2.pt",
+  "action_mode": "residual_v1",
+  "python": "3.12.14",
+  "torch": "2.14.1+cpu",
+  "numpy": "2.3.5",
+  "threads": 2,
+  "steps": 144,
+  "runs": [
+    {
+      "seed": 20000,
+      "episodes": 12,
+      "summary": {
+        "model": {
+          "avg_comfort": 84.5484837962963,
+          "energy_kwh": 23.900694444444444,
+          "total_reward": 155.7330011904762,
+          "unsafe_steps": 4.083333333333333
+        },
+        "deterministic": {
+          "avg_comfort": 84.5484837962963,
+          "energy_kwh": 23.900694444444444,
+          "total_reward": 155.7330011904762,
+          "unsafe_steps": 4.083333333333333
+        }
+      },
+      "delta": {
+        "avg_comfort": 0.0,
+        "energy_kwh": 0.0,
+        "total_reward": 0.0,
+        "unsafe_steps": 0.0
+      },
+      "diagnostics": {
+        "action_histogram": {
+          "0": 1728
+        },
+        "raw_command_differences_on_same_model_states": 0,
+        "final_command_differences_on_same_model_states": 0,
+        "full_trajectory_hashes_equal": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "trajectory_hashes": [
+          {
+            "episode": 1,
+            "model": "b7ba997a0dfa2e5e0b474aa4845d692ba80afdff9d3b474f35a31f8d33c21860",
+            "deterministic": "b7ba997a0dfa2e5e0b474aa4845d692ba80afdff9d3b474f35a31f8d33c21860"
+          },
+          {
+            "episode": 2,
+            "model": "9394d82286e3ef8a6152edc4fea16d2faf1562c6eea3d09a18be2a19c7840669",
+            "deterministic": "9394d82286e3ef8a6152edc4fea16d2faf1562c6eea3d09a18be2a19c7840669"
+          },
+          {
+            "episode": 3,
+            "model": "4f58ccd9d2f902a69f63e1503eedd7b043e60f532fcffeeb1cf7588eaf1c9920",
+            "deterministic": "4f58ccd9d2f902a69f63e1503eedd7b043e60f532fcffeeb1cf7588eaf1c9920"
+          },
+          {
+            "episode": 4,
+            "model": "49f8ada316b0bf3db01762c67ac4a10c22a29c7f10ba0cdef81ba9529587e453",
+            "deterministic": "49f8ada316b0bf3db01762c67ac4a10c22a29c7f10ba0cdef81ba9529587e453"
+          },
+          {
+            "episode": 5,
+            "model": "31bd5a095aebfc7abba226953a95ffb79dcd852caf412bcd7b2c0a228aa9449a",
+            "deterministic": "31bd5a095aebfc7abba226953a95ffb79dcd852caf412bcd7b2c0a228aa9449a"
+          },
+          {
+            "episode": 6,
+            "model": "206d618d819066e411503131d9c43cb4cbcdb5d4911438f60b77d2cc17be8b5c",
+            "deterministic": "206d618d819066e411503131d9c43cb4cbcdb5d4911438f60b77d2cc17be8b5c"
+          },
+          {
+            "episode": 7,
+            "model": "c9ae6e580942b92f202e5d02f7e477426079b6b574c66ed8a7568dd295617f92",
+            "deterministic": "c9ae6e580942b92f202e5d02f7e477426079b6b574c66ed8a7568dd295617f92"
+          },
+          {
+            "episode": 8,
+            "model": "0a48a8add38f566dd7387623b835f102b03c31f5ea391a7adc720f1d70770c9d",
+            "deterministic": "0a48a8add38f566dd7387623b835f102b03c31f5ea391a7adc720f1d70770c9d"
+          },
+          {
+            "episode": 9,
+            "model": "8667d877b39e036f1b2fa6d491538d6f987a5550502a185d2ffe8d8555b7b4f0",
+            "deterministic": "8667d877b39e036f1b2fa6d491538d6f987a5550502a185d2ffe8d8555b7b4f0"
+          },
+          {
+            "episode": 10,
+            "model": "694b6a3981c857986fdb775fb606647f8faab31ba5fedc09c34ebd47ca10f599",
+            "deterministic": "694b6a3981c857986fdb775fb606647f8faab31ba5fedc09c34ebd47ca10f599"
+          },
+          {
+            "episode": 11,
+            "model": "ab3dbcfde040e14c867f267b0c1d869c81e62bdc362e2bc656f979ae78a6e67c",
+            "deterministic": "ab3dbcfde040e14c867f267b0c1d869c81e62bdc362e2bc656f979ae78a6e67c"
+          },
+          {
+            "episode": 12,
+            "model": "9b99bd671d387d01c31885598829c9e88419158a774a2b7b9bb0525dd7320bb9",
+            "deterministic": "9b99bd671d387d01c31885598829c9e88419158a774a2b7b9bb0525dd7320bb9"
+          }
+        ],
+        "difference_examples": [],
+        "seconds": 1.6473257949983235
+      }
+    },
+    {
+      "seed": 42,
+      "episodes": 20,
+      "summary": {
+        "model": {
+          "avg_comfort": 79.89628472222222,
+          "energy_kwh": 23.238833333333332,
+          "total_reward": 101.31110000000001,
+          "unsafe_steps": 8.2
+        },
+        "deterministic": {
+          "avg_comfort": 79.89628472222222,
+          "energy_kwh": 23.238833333333332,
+          "total_reward": 101.31110000000001,
+          "unsafe_steps": 8.2
+        }
+      },
+      "delta": {
+        "avg_comfort": 0.0,
+        "energy_kwh": 0.0,
+        "total_reward": 0.0,
+        "unsafe_steps": 0.0
+      },
+      "diagnostics": {
+        "action_histogram": {
+          "0": 2880
+        },
+        "raw_command_differences_on_same_model_states": 0,
+        "final_command_differences_on_same_model_states": 0,
+        "full_trajectory_hashes_equal": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "trajectory_hashes": [
+          {
+            "episode": 1,
+            "model": "9dedb5373f52fd43eea3d275b8a77220ae694b89cb4dde2c91a5b9a32e488a1b",
+            "deterministic": "9dedb5373f52fd43eea3d275b8a77220ae694b89cb4dde2c91a5b9a32e488a1b"
+          },
+          {
+            "episode": 2,
+            "model": "7cc2c36188dc7aee778d758ebe480bab0903dbc89267666316ca335fd1274e0b",
+            "deterministic": "7cc2c36188dc7aee778d758ebe480bab0903dbc89267666316ca335fd1274e0b"
+          },
+          {
+            "episode": 3,
+            "model": "4f32aafea7d81786a57a6d43d2ac8396219bfa4e2b83cd329dd4983f9708f2cc",
+            "deterministic": "4f32aafea7d81786a57a6d43d2ac8396219bfa4e2b83cd329dd4983f9708f2cc"
+          },
+          {
+            "episode": 4,
+            "model": "bc64f90fafa54e0f78993a20a10fb5257409208089b22ff78d5baaf91ab870b4",
+            "deterministic": "bc64f90fafa54e0f78993a20a10fb5257409208089b22ff78d5baaf91ab870b4"
+          },
+          {
+            "episode": 5,
+            "model": "a2b641029bc1463cb4bc64cecb272fcd8073e026432ec8b7de24dfbd454b289c",
+            "deterministic": "a2b641029bc1463cb4bc64cecb272fcd8073e026432ec8b7de24dfbd454b289c"
+          },
+          {
+            "episode": 6,
+            "model": "63e6a1c41a8bd84e7188d92f8f6b068029838e8c475eb7731b5833e1a2103d75",
+            "deterministic": "63e6a1c41a8bd84e7188d92f8f6b068029838e8c475eb7731b5833e1a2103d75"
+          },
+          {
+            "episode": 7,
+            "model": "eb3156444812f63819321b43fc20f5f67d5fec6f063a386e7b6b77d8835d07ca",
+            "deterministic": "eb3156444812f63819321b43fc20f5f67d5fec6f063a386e7b6b77d8835d07ca"
+          },
+          {
+            "episode": 8,
+            "model": "285c9a5c0f8aab0a4d05db9e3f26b466d97eaab693776b08385a7e21ba5cd521",
+            "deterministic": "285c9a5c0f8aab0a4d05db9e3f26b466d97eaab693776b08385a7e21ba5cd521"
+          },
+          {
+            "episode": 9,
+            "model": "9f17b302002eda7ba772028fb6ab5b146f2c7063f8d49b6634467de2dd4a9535",
+            "deterministic": "9f17b302002eda7ba772028fb6ab5b146f2c7063f8d49b6634467de2dd4a9535"
+          },
+          {
+            "episode": 10,
+            "model": "4f3ff16fec774662c3848aefa5e13dfcb01ae384776c5dfc89f5fee231487278",
+            "deterministic": "4f3ff16fec774662c3848aefa5e13dfcb01ae384776c5dfc89f5fee231487278"
+          },
+          {
+            "episode": 11,
+            "model": "2b1c6748fd585c81d57e00d3edc4cc44bbb9b3c75f1d2898a802d4a5d89631a0",
+            "deterministic": "2b1c6748fd585c81d57e00d3edc4cc44bbb9b3c75f1d2898a802d4a5d89631a0"
+          },
+          {
+            "episode": 12,
+            "model": "b01f04818c30745853c39abe3437bf374304f4e33170a63e693de592a3942316",
+            "deterministic": "b01f04818c30745853c39abe3437bf374304f4e33170a63e693de592a3942316"
+          },
+          {
+            "episode": 13,
+            "model": "60c5a303d0084e9e0254c4cac7402fe985f54af0d190d149797ecd685bb2ec39",
+            "deterministic": "60c5a303d0084e9e0254c4cac7402fe985f54af0d190d149797ecd685bb2ec39"
+          },
+          {
+            "episode": 14,
+            "model": "b4d4751a484fee2807fb1f802fb50f7affd51e36ebd64ee3d188aa00fd4c6e5d",
+            "deterministic": "b4d4751a484fee2807fb1f802fb50f7affd51e36ebd64ee3d188aa00fd4c6e5d"
+          },
+          {
+            "episode": 15,
+            "model": "cb3fc0dfcab428a54b76c9736afd541a0f32c3fb0c123d4c083faf10510d6ffb",
+            "deterministic": "cb3fc0dfcab428a54b76c9736afd541a0f32c3fb0c123d4c083faf10510d6ffb"
+          },
+          {
+            "episode": 16,
+            "model": "31ba6f0bbd8733a4082197df67b08271e2dd40b60afff8cb8347df214d3d5b6e",
+            "deterministic": "31ba6f0bbd8733a4082197df67b08271e2dd40b60afff8cb8347df214d3d5b6e"
+          },
+          {
+            "episode": 17,
+            "model": "88d6835727971145562b59cfb89f4ea64b4fab7c6d36ff4d5c6d6e62c10d86b8",
+            "deterministic": "88d6835727971145562b59cfb89f4ea64b4fab7c6d36ff4d5c6d6e62c10d86b8"
+          },
+          {
+            "episode": 18,
+            "model": "3df9f250abbeffd4c5367cf9b3d9ac73513cc55f552c7a9b510edf1d852724ef",
+            "deterministic": "3df9f250abbeffd4c5367cf9b3d9ac73513cc55f552c7a9b510edf1d852724ef"
+          },
+          {
+            "episode": 19,
+            "model": "83dfe5f01131ffb158be5ab028a23a807362b31a1791d7855bd3187b40ebdcd5",
+            "deterministic": "83dfe5f01131ffb158be5ab028a23a807362b31a1791d7855bd3187b40ebdcd5"
+          },
+          {
+            "episode": 20,
+            "model": "c2487b5ba825bbde296857b6d793288303057e610e6ae539dd1608e3b428ed6d",
+            "deterministic": "c2487b5ba825bbde296857b6d793288303057e610e6ae539dd1608e3b428ed6d"
+          }
+        ],
+        "difference_examples": [],
+        "seconds": 2.648171551001724
+      }
+    },
+    {
+      "seed": 101,
+      "episodes": 20,
+      "summary": {
+        "model": {
+          "avg_comfort": 81.10307291666666,
+          "energy_kwh": 26.144375,
+          "total_reward": 97.24037742857142,
+          "unsafe_steps": 13.4
+        },
+        "deterministic": {
+          "avg_comfort": 81.10307291666666,
+          "energy_kwh": 26.144375,
+          "total_reward": 97.24037742857142,
+          "unsafe_steps": 13.4
+        }
+      },
+      "delta": {
+        "avg_comfort": 0.0,
+        "energy_kwh": 0.0,
+        "total_reward": 0.0,
+        "unsafe_steps": 0.0
+      },
+      "diagnostics": {
+        "action_histogram": {
+          "0": 2880
+        },
+        "raw_command_differences_on_same_model_states": 0,
+        "final_command_differences_on_same_model_states": 0,
+        "full_trajectory_hashes_equal": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "trajectory_hashes": [
+          {
+            "episode": 1,
+            "model": "fd850eb7f45f1952b98423b9b8d3671e8abcb1c7650a309eaa03594f19bfde14",
+            "deterministic": "fd850eb7f45f1952b98423b9b8d3671e8abcb1c7650a309eaa03594f19bfde14"
+          },
+          {
+            "episode": 2,
+            "model": "addf3d8f442f28f9c9d8b4afc0a9d1421cbf50774ae1bed6ed9f143fe1b63b7f",
+            "deterministic": "addf3d8f442f28f9c9d8b4afc0a9d1421cbf50774ae1bed6ed9f143fe1b63b7f"
+          },
+          {
+            "episode": 3,
+            "model": "e2f78921d3c8dd45502b40746c341eb8721ebd317d7738bae1816d359254e8df",
+            "deterministic": "e2f78921d3c8dd45502b40746c341eb8721ebd317d7738bae1816d359254e8df"
+          },
+          {
+            "episode": 4,
+            "model": "f1e350c798716ef9e0674635e310afed4f3fb724cef9867e1d0b58e0b1880e95",
+            "deterministic": "f1e350c798716ef9e0674635e310afed4f3fb724cef9867e1d0b58e0b1880e95"
+          },
+          {
+            "episode": 5,
+            "model": "eb20178cfb8a2112c1355f07b49e865c90e28869ba990492e03b46615ef53fa5",
+            "deterministic": "eb20178cfb8a2112c1355f07b49e865c90e28869ba990492e03b46615ef53fa5"
+          },
+          {
+            "episode": 6,
+            "model": "9555208fb1ec92357587532ebdd007099f3b1a47e88880bca0e595c5a09dc718",
+            "deterministic": "9555208fb1ec92357587532ebdd007099f3b1a47e88880bca0e595c5a09dc718"
+          },
+          {
+            "episode": 7,
+            "model": "6058d5ab27181e28067e59b4d464c5532bb0e26a3265cc4e820940000d768f26",
+            "deterministic": "6058d5ab27181e28067e59b4d464c5532bb0e26a3265cc4e820940000d768f26"
+          },
+          {
+            "episode": 8,
+            "model": "00f3c024e30753d104f3e7a8a68c83b0966b96765f9014a68411f2f77076fc98",
+            "deterministic": "00f3c024e30753d104f3e7a8a68c83b0966b96765f9014a68411f2f77076fc98"
+          },
+          {
+            "episode": 9,
+            "model": "f8ede032138133784a4f3332f7cd47d25fe9b7cc5aa5f731cdc75cd92c2ed3a0",
+            "deterministic": "f8ede032138133784a4f3332f7cd47d25fe9b7cc5aa5f731cdc75cd92c2ed3a0"
+          },
+          {
+            "episode": 10,
+            "model": "632e0612e59b6c28a73c60fdbe58242ace6736c49011a5c0fc52d17291e2a21c",
+            "deterministic": "632e0612e59b6c28a73c60fdbe58242ace6736c49011a5c0fc52d17291e2a21c"
+          },
+          {
+            "episode": 11,
+            "model": "19582cb6cc9ea947afe7f9a549283e8367969b62987e4428dd579a2603fe86ad",
+            "deterministic": "19582cb6cc9ea947afe7f9a549283e8367969b62987e4428dd579a2603fe86ad"
+          },
+          {
+            "episode": 12,
+            "model": "7884e292cb61be3872031692e83e0c0f399e328bac247f4461446bf85a0427a5",
+            "deterministic": "7884e292cb61be3872031692e83e0c0f399e328bac247f4461446bf85a0427a5"
+          },
+          {
+            "episode": 13,
+            "model": "6282e59449463001a8b5066c5f1c88fe0c87dbbac92111ae53361805824318bb",
+            "deterministic": "6282e59449463001a8b5066c5f1c88fe0c87dbbac92111ae53361805824318bb"
+          },
+          {
+            "episode": 14,
+            "model": "793269164e17ffa0ec3297719c7fc4c6a6b285227bf55480cd8692437db3a7fc",
+            "deterministic": "793269164e17ffa0ec3297719c7fc4c6a6b285227bf55480cd8692437db3a7fc"
+          },
+          {
+            "episode": 15,
+            "model": "d9acad711da3c4b71bf993d7519741a2e63e1ed0ee549892dff2ac96751b3b90",
+            "deterministic": "d9acad711da3c4b71bf993d7519741a2e63e1ed0ee549892dff2ac96751b3b90"
+          },
+          {
+            "episode": 16,
+            "model": "77369b01e914f53d49c9de0ba8beb29acb40443eb7b3c1caa6a7e963de49a9ec",
+            "deterministic": "77369b01e914f53d49c9de0ba8beb29acb40443eb7b3c1caa6a7e963de49a9ec"
+          },
+          {
+            "episode": 17,
+            "model": "26150836dd5d52a81420193ab53bedf6070b83e91346f89b853afcc252c55df7",
+            "deterministic": "26150836dd5d52a81420193ab53bedf6070b83e91346f89b853afcc252c55df7"
+          },
+          {
+            "episode": 18,
+            "model": "792f94e53950514de53afd37313eeda827e415192ba5b570ac1dc2b51b004b9d",
+            "deterministic": "792f94e53950514de53afd37313eeda827e415192ba5b570ac1dc2b51b004b9d"
+          },
+          {
+            "episode": 19,
+            "model": "3b7cef44ad026adcb4f2c521cc7043d00112bbd4f28edf8debb510de713d855a",
+            "deterministic": "3b7cef44ad026adcb4f2c521cc7043d00112bbd4f28edf8debb510de713d855a"
+          },
+          {
+            "episode": 20,
+            "model": "c9f01e6bea901b3970860b1afb71f103b43f2ca47d4463e55c9b82cda2b4dfb6",
+            "deterministic": "c9f01e6bea901b3970860b1afb71f103b43f2ca47d4463e55c9b82cda2b4dfb6"
+          }
+        ],
+        "difference_examples": [],
+        "seconds": 2.5836510119988816
+      }
+    },
+    {
+      "seed": 2026,
+      "episodes": 20,
+      "summary": {
+        "model": {
+          "avg_comfort": 82.12044791666666,
+          "energy_kwh": 23.931541666666668,
+          "total_reward": 121.93629335714286,
+          "unsafe_steps": 9
+        },
+        "deterministic": {
+          "avg_comfort": 82.12044791666666,
+          "energy_kwh": 23.931541666666668,
+          "total_reward": 121.93629335714286,
+          "unsafe_steps": 9
+        }
+      },
+      "delta": {
+        "avg_comfort": 0.0,
+        "energy_kwh": 0.0,
+        "total_reward": 0.0,
+        "unsafe_steps": 0
+      },
+      "diagnostics": {
+        "action_histogram": {
+          "0": 2880
+        },
+        "raw_command_differences_on_same_model_states": 0,
+        "final_command_differences_on_same_model_states": 0,
+        "full_trajectory_hashes_equal": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "trajectory_hashes": [
+          {
+            "episode": 1,
+            "model": "bd5cc5053afbd5fa46121d886e2f65a6afa1753f0c8d405fdf5086197f0db687",
+            "deterministic": "bd5cc5053afbd5fa46121d886e2f65a6afa1753f0c8d405fdf5086197f0db687"
+          },
+          {
+            "episode": 2,
+            "model": "fd94ccfb9ab6ec47071d691ff01011e557ce342756ee603b65bdae06527b3097",
+            "deterministic": "fd94ccfb9ab6ec47071d691ff01011e557ce342756ee603b65bdae06527b3097"
+          },
+          {
+            "episode": 3,
+            "model": "c17b2e97cbc558e72b4b360a0e50a5e4f53aaf8d217263c77a7136fe728f100b",
+            "deterministic": "c17b2e97cbc558e72b4b360a0e50a5e4f53aaf8d217263c77a7136fe728f100b"
+          },
+          {
+            "episode": 4,
+            "model": "5d3494fe73b677c8b04dd6561dcce5b329a0624a67ac7f2b761b24018b0d8c30",
+            "deterministic": "5d3494fe73b677c8b04dd6561dcce5b329a0624a67ac7f2b761b24018b0d8c30"
+          },
+          {
+            "episode": 5,
+            "model": "d0e139cc55adbef5e5e2abfd9bc708e3249b70531c678323c2bec7669a2b1b77",
+            "deterministic": "d0e139cc55adbef5e5e2abfd9bc708e3249b70531c678323c2bec7669a2b1b77"
+          },
+          {
+            "episode": 6,
+            "model": "e9591b3aa250ccfbee1963bde75d08f941ecf7c25e209e4e9c400b57635ecd8c",
+            "deterministic": "e9591b3aa250ccfbee1963bde75d08f941ecf7c25e209e4e9c400b57635ecd8c"
+          },
+          {
+            "episode": 7,
+            "model": "b203857bf73087ec3e3f018ca467b2760228bcb8a013595636e461a7260b1399",
+            "deterministic": "b203857bf73087ec3e3f018ca467b2760228bcb8a013595636e461a7260b1399"
+          },
+          {
+            "episode": 8,
+            "model": "31c8b7e114431b32266ad37facc3a34c06086dc2e4c534b9680e809cd3b12aeb",
+            "deterministic": "31c8b7e114431b32266ad37facc3a34c06086dc2e4c534b9680e809cd3b12aeb"
+          },
+          {
+            "episode": 9,
+            "model": "6d388ad4a1ed947cd80d2da7a87f8354126654f127da6623a7beedfc23d5d109",
+            "deterministic": "6d388ad4a1ed947cd80d2da7a87f8354126654f127da6623a7beedfc23d5d109"
+          },
+          {
+            "episode": 10,
+            "model": "e3565a556ed5b78527c69807faf144666567039179559dec83f2a3992b880de2",
+            "deterministic": "e3565a556ed5b78527c69807faf144666567039179559dec83f2a3992b880de2"
+          },
+          {
+            "episode": 11,
+            "model": "b97fba2c97281673e5ff953bf293a08db35e90bdeba6acd0d666ba4a9a75ae2c",
+            "deterministic": "b97fba2c97281673e5ff953bf293a08db35e90bdeba6acd0d666ba4a9a75ae2c"
+          },
+          {
+            "episode": 12,
+            "model": "a183fde9b86a62045f0134eb9d45c9c6301f837c4170bba984317747be43290b",
+            "deterministic": "a183fde9b86a62045f0134eb9d45c9c6301f837c4170bba984317747be43290b"
+          },
+          {
+            "episode": 13,
+            "model": "ad6b5a1993c8956ff9690ace7e29a8aacf0bca7fb0e78f8f718f93fea0c299e9",
+            "deterministic": "ad6b5a1993c8956ff9690ace7e29a8aacf0bca7fb0e78f8f718f93fea0c299e9"
+          },
+          {
+            "episode": 14,
+            "model": "da567159c28df922cf5c71befc9080b3eff01b70b5b5dcb0fdf5815ae8cf3f0f",
+            "deterministic": "da567159c28df922cf5c71befc9080b3eff01b70b5b5dcb0fdf5815ae8cf3f0f"
+          },
+          {
+            "episode": 15,
+            "model": "c2c4edbe04af5205411e59d853e714bb51b60eda74a63d0444ff6ef47f38fb41",
+            "deterministic": "c2c4edbe04af5205411e59d853e714bb51b60eda74a63d0444ff6ef47f38fb41"
+          },
+          {
+            "episode": 16,
+            "model": "6bb7a9dc2907a3b92e3458609d05d3e340802fad712455a129ebb31f4b15d0a5",
+            "deterministic": "6bb7a9dc2907a3b92e3458609d05d3e340802fad712455a129ebb31f4b15d0a5"
+          },
+          {
+            "episode": 17,
+            "model": "8fa0e45c7d1c2701e7c370dd668eeab8d86d722b189eab4e1cb90347279082ff",
+            "deterministic": "8fa0e45c7d1c2701e7c370dd668eeab8d86d722b189eab4e1cb90347279082ff"
+          },
+          {
+            "episode": 18,
+            "model": "57e8946101ae113a4a476eaea607c9af2870113a65501f3e8e072408b7de7b33",
+            "deterministic": "57e8946101ae113a4a476eaea607c9af2870113a65501f3e8e072408b7de7b33"
+          },
+          {
+            "episode": 19,
+            "model": "725fa42d369f1ba0ab3322a24bffa7d33a96dac462fa0be3b7631f605db7799f",
+            "deterministic": "725fa42d369f1ba0ab3322a24bffa7d33a96dac462fa0be3b7631f605db7799f"
+          },
+          {
+            "episode": 20,
+            "model": "474173a714dd42e9ac4ab17b73095c5812ce55e752db3aaf1ea23c008e02d069",
+            "deterministic": "474173a714dd42e9ac4ab17b73095c5812ce55e752db3aaf1ea23c008e02d069"
+          }
+        ],
+        "difference_examples": [],
+        "seconds": 2.7266874859997188
+      }
+    },
+    {
+      "seed": 31415,
+      "episodes": 20,
+      "summary": {
+        "model": {
+          "avg_comfort": 77.94396527777778,
+          "energy_kwh": 26.423708333333334,
+          "total_reward": 72.2541252857143,
+          "unsafe_steps": 12.05
+        },
+        "deterministic": {
+          "avg_comfort": 77.94396527777778,
+          "energy_kwh": 26.423708333333334,
+          "total_reward": 72.2541252857143,
+          "unsafe_steps": 12.05
+        }
+      },
+      "delta": {
+        "avg_comfort": 0.0,
+        "energy_kwh": 0.0,
+        "total_reward": 0.0,
+        "unsafe_steps": 0.0
+      },
+      "diagnostics": {
+        "action_histogram": {
+          "0": 2880
+        },
+        "raw_command_differences_on_same_model_states": 0,
+        "final_command_differences_on_same_model_states": 0,
+        "full_trajectory_hashes_equal": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "trajectory_hashes": [
+          {
+            "episode": 1,
+            "model": "1dda2ededdfb8f96239b4d5542fb170ef47c3b27658eaa54e9387c659e1734b7",
+            "deterministic": "1dda2ededdfb8f96239b4d5542fb170ef47c3b27658eaa54e9387c659e1734b7"
+          },
+          {
+            "episode": 2,
+            "model": "f896914bf1fbbb2dd97519bd5673a02387dcacefe0bca8411f907a8bc18431b4",
+            "deterministic": "f896914bf1fbbb2dd97519bd5673a02387dcacefe0bca8411f907a8bc18431b4"
+          },
+          {
+            "episode": 3,
+            "model": "fc8530bf88bb98efd01d6bdf33ce4cd953425d895ad7d9290414e82f6a6ce6b5",
+            "deterministic": "fc8530bf88bb98efd01d6bdf33ce4cd953425d895ad7d9290414e82f6a6ce6b5"
+          },
+          {
+            "episode": 4,
+            "model": "b045e9aab44ab66ac9964ae0f1c6ebef3b215beb25178dfa28323345ec047e73",
+            "deterministic": "b045e9aab44ab66ac9964ae0f1c6ebef3b215beb25178dfa28323345ec047e73"
+          },
+          {
+            "episode": 5,
+            "model": "8e375d36af050c309e48a1d442584c997db95fa955d182f40503a7e7d4189bd1",
+            "deterministic": "8e375d36af050c309e48a1d442584c997db95fa955d182f40503a7e7d4189bd1"
+          },
+          {
+            "episode": 6,
+            "model": "9ad2a2650a89dc6121dbd3fd53995b9b86d806fd82ed6a392500f9c07e45a12c",
+            "deterministic": "9ad2a2650a89dc6121dbd3fd53995b9b86d806fd82ed6a392500f9c07e45a12c"
+          },
+          {
+            "episode": 7,
+            "model": "ed81532943c7aebf20b540eb47968a910caaa26a56c6aa2aeddadb29f0eea667",
+            "deterministic": "ed81532943c7aebf20b540eb47968a910caaa26a56c6aa2aeddadb29f0eea667"
+          },
+          {
+            "episode": 8,
+            "model": "f4740e8b1f2b48bcdc0b65382dbcb8d3cf4713d962f16866e470ba91f8942c10",
+            "deterministic": "f4740e8b1f2b48bcdc0b65382dbcb8d3cf4713d962f16866e470ba91f8942c10"
+          },
+          {
+            "episode": 9,
+            "model": "8d18c407eaf78e152b12a787cf33d18b890940bdea0fed509e74cfbd00db143f",
+            "deterministic": "8d18c407eaf78e152b12a787cf33d18b890940bdea0fed509e74cfbd00db143f"
+          },
+          {
+            "episode": 10,
+            "model": "b68ea1457fa83cb4e112928d6f7f07527c4586b145bcb6954d56373075f05ad7",
+            "deterministic": "b68ea1457fa83cb4e112928d6f7f07527c4586b145bcb6954d56373075f05ad7"
+          },
+          {
+            "episode": 11,
+            "model": "d2260cb41c74023fd5485fc00d0ec461628973054a7df0f33f19e65e70ecc12c",
+            "deterministic": "d2260cb41c74023fd5485fc00d0ec461628973054a7df0f33f19e65e70ecc12c"
+          },
+          {
+            "episode": 12,
+            "model": "6ce8a191773c87649f8b4ce85ee08194dcf8d534a941409e1c7cde503b1f7179",
+            "deterministic": "6ce8a191773c87649f8b4ce85ee08194dcf8d534a941409e1c7cde503b1f7179"
+          },
+          {
+            "episode": 13,
+            "model": "5b9a7bd4d2d62bd9d0209616987d6cddf209bd20be204918203cbb51ed327d02",
+            "deterministic": "5b9a7bd4d2d62bd9d0209616987d6cddf209bd20be204918203cbb51ed327d02"
+          },
+          {
+            "episode": 14,
+            "model": "ab85644a0d38dc4520514d20c52083553f3b96a1a3ffb07ea6fbc788ac2262d7",
+            "deterministic": "ab85644a0d38dc4520514d20c52083553f3b96a1a3ffb07ea6fbc788ac2262d7"
+          },
+          {
+            "episode": 15,
+            "model": "f7126a1f3bc6007b24802249b7e3f3d97d56450f76ed477eee0e58b8e2532a8e",
+            "deterministic": "f7126a1f3bc6007b24802249b7e3f3d97d56450f76ed477eee0e58b8e2532a8e"
+          },
+          {
+            "episode": 16,
+            "model": "3c2e2072d54370a86a7759b11664bcfb09f8f7976cc9cadb9ec2aff9d48ec32c",
+            "deterministic": "3c2e2072d54370a86a7759b11664bcfb09f8f7976cc9cadb9ec2aff9d48ec32c"
+          },
+          {
+            "episode": 17,
+            "model": "8ac51c95fb2e30af4323498c8ff83e7b323df612faf5da24c467bc621f9c54c7",
+            "deterministic": "8ac51c95fb2e30af4323498c8ff83e7b323df612faf5da24c467bc621f9c54c7"
+          },
+          {
+            "episode": 18,
+            "model": "1ce53e40eb33e2e845eff76c9c0ae824edf93ed1242ada1de78873807337788c",
+            "deterministic": "1ce53e40eb33e2e845eff76c9c0ae824edf93ed1242ada1de78873807337788c"
+          },
+          {
+            "episode": 19,
+            "model": "d3008ab47c35aa04fd1d920e02f1582fd708d61252a8e98afb4a6fa6cd990da7",
+            "deterministic": "d3008ab47c35aa04fd1d920e02f1582fd708d61252a8e98afb4a6fa6cd990da7"
+          },
+          {
+            "episode": 20,
+            "model": "bcc787e30f58ccdb1ba3f08fd5cf2894b7b8c34fc1dcdd254d3c6907187bcf95",
+            "deterministic": "bcc787e30f58ccdb1ba3f08fd5cf2894b7b8c34fc1dcdd254d3c6907187bcf95"
+          }
+        ],
+        "difference_examples": [],
+        "seconds": 2.6984933000021556
+      }
+    },
+    {
+      "seed": 987654,
+      "episodes": 20,
+      "summary": {
+        "model": {
+          "avg_comfort": 74.13910416666667,
+          "energy_kwh": 26.425208333333334,
+          "total_reward": 40.783488642857144,
+          "unsafe_steps": 9.9
+        },
+        "deterministic": {
+          "avg_comfort": 74.13910416666667,
+          "energy_kwh": 26.425208333333334,
+          "total_reward": 40.783488642857144,
+          "unsafe_steps": 9.9
+        }
+      },
+      "delta": {
+        "avg_comfort": 0.0,
+        "energy_kwh": 0.0,
+        "total_reward": 0.0,
+        "unsafe_steps": 0.0
+      },
+      "diagnostics": {
+        "action_histogram": {
+          "0": 2880
+        },
+        "raw_command_differences_on_same_model_states": 0,
+        "final_command_differences_on_same_model_states": 0,
+        "full_trajectory_hashes_equal": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "trajectory_hashes": [
+          {
+            "episode": 1,
+            "model": "fbf12f6c28baf0d86f82daeb2c6a5ffaac598282f3f4ac9213d38b38cc88af0f",
+            "deterministic": "fbf12f6c28baf0d86f82daeb2c6a5ffaac598282f3f4ac9213d38b38cc88af0f"
+          },
+          {
+            "episode": 2,
+            "model": "97ff4198d70a4211fa18086e8d71e8b16fe59291cad0d3140dc97bc5ddb22c4f",
+            "deterministic": "97ff4198d70a4211fa18086e8d71e8b16fe59291cad0d3140dc97bc5ddb22c4f"
+          },
+          {
+            "episode": 3,
+            "model": "f24d314178fc22fcbedee197bfd9a0afcf0f3713561586591c78d55f16739205",
+            "deterministic": "f24d314178fc22fcbedee197bfd9a0afcf0f3713561586591c78d55f16739205"
+          },
+          {
+            "episode": 4,
+            "model": "e510027a9b6cf3f96b50fd5cdfbf9426c1df2acf6708216103da5695aaf577a7",
+            "deterministic": "e510027a9b6cf3f96b50fd5cdfbf9426c1df2acf6708216103da5695aaf577a7"
+          },
+          {
+            "episode": 5,
+            "model": "ab0b535287ac432857be19d6ba4813bd39a2daea4631689da7a859d4f1a6fa01",
+            "deterministic": "ab0b535287ac432857be19d6ba4813bd39a2daea4631689da7a859d4f1a6fa01"
+          },
+          {
+            "episode": 6,
+            "model": "de1e0c2a790701515fb5a28db9124a9d644a06316a6b75cbb6a0dc59bce88601",
+            "deterministic": "de1e0c2a790701515fb5a28db9124a9d644a06316a6b75cbb6a0dc59bce88601"
+          },
+          {
+            "episode": 7,
+            "model": "94e0e2e544f6804394e8f3c2ba70b3e31fd42d9db633528ca23751b04baf9bbf",
+            "deterministic": "94e0e2e544f6804394e8f3c2ba70b3e31fd42d9db633528ca23751b04baf9bbf"
+          },
+          {
+            "episode": 8,
+            "model": "8e2bec4fc5919b60df7093f09aa0381feb2c66756e11502229fada9ff6f75a7b",
+            "deterministic": "8e2bec4fc5919b60df7093f09aa0381feb2c66756e11502229fada9ff6f75a7b"
+          },
+          {
+            "episode": 9,
+            "model": "b75a678d5f9bf21cc0478e20ed38cae86483a618254653b03b35dd74edf5dff2",
+            "deterministic": "b75a678d5f9bf21cc0478e20ed38cae86483a618254653b03b35dd74edf5dff2"
+          },
+          {
+            "episode": 10,
+            "model": "114d71b03f2787833a9182b1b5aa5a4b25522b3236182713aadd4ccb9c2fd883",
+            "deterministic": "114d71b03f2787833a9182b1b5aa5a4b25522b3236182713aadd4ccb9c2fd883"
+          },
+          {
+            "episode": 11,
+            "model": "03f8a540461f8e3c6e038dd1b6562cf1f18f636d8759540a8b2c23c9699b8570",
+            "deterministic": "03f8a540461f8e3c6e038dd1b6562cf1f18f636d8759540a8b2c23c9699b8570"
+          },
+          {
+            "episode": 12,
+            "model": "87e2963e90d135cd60eb6f17d37e08eedf38012da264415e1d20fee7ad572567",
+            "deterministic": "87e2963e90d135cd60eb6f17d37e08eedf38012da264415e1d20fee7ad572567"
+          },
+          {
+            "episode": 13,
+            "model": "bce32bff1de5599337981d699f6556ec41988abab05e90437230ecf60fd7e3b2",
+            "deterministic": "bce32bff1de5599337981d699f6556ec41988abab05e90437230ecf60fd7e3b2"
+          },
+          {
+            "episode": 14,
+            "model": "5f5a7069adbefe7d6ca2bfc4f39aa1523d0f17da19bc833c2f4457c1bbccae1b",
+            "deterministic": "5f5a7069adbefe7d6ca2bfc4f39aa1523d0f17da19bc833c2f4457c1bbccae1b"
+          },
+          {
+            "episode": 15,
+            "model": "e1e3d6c8cca1d4c8846b19f9b4021c75994285ade3fb2657afd981f95732d066",
+            "deterministic": "e1e3d6c8cca1d4c8846b19f9b4021c75994285ade3fb2657afd981f95732d066"
+          },
+          {
+            "episode": 16,
+            "model": "0a3709ab6a1e2a7085e21d457ddb63cfe5cc6f73c1983f4d4de5599e1285ab34",
+            "deterministic": "0a3709ab6a1e2a7085e21d457ddb63cfe5cc6f73c1983f4d4de5599e1285ab34"
+          },
+          {
+            "episode": 17,
+            "model": "1a45eda2ff6183946ef62cc3798ff4f5ca82d2714db315f976e80025b4157d81",
+            "deterministic": "1a45eda2ff6183946ef62cc3798ff4f5ca82d2714db315f976e80025b4157d81"
+          },
+          {
+            "episode": 18,
+            "model": "e5c502395b8f56bb2d08517defdf0a5c50b5f6c22f72112055f2f343a137167a",
+            "deterministic": "e5c502395b8f56bb2d08517defdf0a5c50b5f6c22f72112055f2f343a137167a"
+          },
+          {
+            "episode": 19,
+            "model": "dc6ff050228fd0afe2d46de8e937880819dad71a9fba15a9ce182d4cc0fd04f3",
+            "deterministic": "dc6ff050228fd0afe2d46de8e937880819dad71a9fba15a9ce182d4cc0fd04f3"
+          },
+          {
+            "episode": 20,
+            "model": "f8e48d49238880a831e64d327f01962345cb875d8ecf31ce721580edff130670",
+            "deterministic": "f8e48d49238880a831e64d327f01962345cb875d8ecf31ce721580edff130670"
+          }
+        ],
+        "difference_examples": [],
+        "seconds": 2.6157258690000162
+      }
+    }
+  ],
+  "probe": {
+    "count": 1000,
+    "seed": 712026,
+    "action_histogram": {
+      "0": 1000
+    },
+    "final_command_differences": 0,
+    "note": "Independent synthetic state probe, not closed-loop performance and not physical measurements."
+  }
+}
