@@ -1,0 +1,12 @@
+digraph G { graph [rankdir=TB, bgcolor="white", pad="0.2", nodesep="0.35", ranksep="0.6"]; node [fontname="DejaVu Sans", fontsize=11, shape=box, style="rounded,filled", fillcolor="#edf3f8", color="#315474", margin="0.18,0.12"]; edge [fontname="DejaVu Sans", fontsize=9,color="#315474"];
+
+ node [shape=record,style=filled];
+ imports [label="{imports|PK id|created_at; filename; count|file_sha256; model_sha256|validation JSON}"];
+ readings [label="{measurements|PK/FK import_id; PK position|timestamp; payload JSON}"];
+ eval [label="{evaluations|PK id|created_at; payload JSON}"];
+ runs [label="{lab_runs|PK id|created_at; kind; model_id|latency_ms; cache_hit; error|rating; payload JSON}"];
+ jobs [label="{lab_jobs|PK id UUID|created_at; updated_at; status|request JSON; result JSON; error}"];
+ imports -> readings [label="1 : N",arrowhead=crow];
+ jobs -> runs [label="result.run_id (логічний зв’язок)",style=dashed];
+
+}

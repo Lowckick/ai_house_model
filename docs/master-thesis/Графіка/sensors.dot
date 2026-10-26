@@ -1,0 +1,13 @@
+digraph G {
+ graph [rankdir=TB,bgcolor="white",pad=.2];
+ node [shape=box,style="rounded,filled",fillcolor="#edf3f8",fontname="DejaVu Sans",fontsize=12,color="#315474",margin=".18,.12"];
+ edge [fontname="DejaVu Sans",fontsize=10,color="#315474"];
+ sensors [label="Фізичні датчики клімату\nмоделі та калібрування: додати"];
+ source [label="Збір і експорт показників\nчастота • timestamp • одиниці"];
+ file [label="JSON / CSV / TXT\nоригінал і нормалізована копія"];
+ validation [label="Валідатор readings.py\nдіапазони • поля • попередження"];
+ inference [label="ImportService → DQN → RuleLayer\nзафіксований checkpoint"];
+ result [label="SQLite / JSON / графіки\nаналіз рекомендацій"];
+ sensors->source [style=dashed,label="натурний протокол очікується"];
+ source->file [style=dashed];file->validation->inference->result;
+}
