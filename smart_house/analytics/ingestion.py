@@ -37,6 +37,7 @@ class ImportService:
             raise ValidationError(report)
         with self._lock:
             agent = self._load()
+            distilled = getattr(agent, 'checkpoint_metadata', {}).get('method') == 'counterfactual_policy_distillation_v1'
             results = []
             for indoor in states:
                 weather = assumed_weather(indoor)
@@ -48,7 +49,7 @@ class ImportService:
                                 'model_devices': asdict(raw), 'recommended_devices': asdict(recommended),
                                 'deterministic_devices': asdict(deterministic_devices(indoor, weather)),
                                 'explanations': [
-                                    {'source': 'model', 'reason': 'Обрано дію з найбільшою Q-оцінкою моделі (epsilon=0). ' +
+                                    {'source': 'model', 'reason': ('Обрано дію за найбільшим логітом дистильованої політики (epsilon=0). ' if distilled else 'Обрано дію з найбільшою Q-оцінкою моделі (epsilon=0). ') +
                                      ('Політика коригує детермінований контролер; дія 0 залишає його рішення. ' if agent.action_mode == 'residual_v1' else '') +
                                      'Причини нейронної оцінки не інтерпретуються; зміни правил наведено окремо.'},
                                     *(teacher_explanations(indoor, weather) if agent.action_mode == "residual_v1" else []),
