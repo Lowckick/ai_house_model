@@ -139,6 +139,15 @@ If the API is unreachable, it automatically falls back to the **synthetic weathe
 - Tune comfort targets → edit `COMFORT_TEMP_MIN/MAX` in `indoor_state.py`
 - Adjust reward weights → edit `RewardFunction` in `agent.py`
 
+## Лабораторія моделей
+
+Вебпанель тепер містить ручне тестування показників, порівняння до трьох
+checkpoint на однакових сценаріях, сім автоматичних перевірок безпеки,
+перевірку регресій відносно попереднього запуску та журнал швидкодії й оцінок.
+Тривалі оцінювання працюють у фоні; повторні тести використовують LRU-кеш.
+
+[Запуск, інструкція та API лабораторії](docs/model-lab.md).
+
 ## Вебінтерфейс: завантаження, історія та оцінка моделі
 
 ```bash

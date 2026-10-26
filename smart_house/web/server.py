@@ -7,6 +7,7 @@ from urllib.parse import urlsplit
 
 from smart_house.analytics.history import History, encode
 from smart_house.analytics.ingestion import ImportService, ValidationError
+from smart_house.analytics.lab import ModelLab, QueueFull
 from smart_house.environment.readings import MAX_FILE_BYTES, inspect_readings
 
 LOGGER = logging.getLogger(__name__)
@@ -15,6 +16,7 @@ MAX_BODY = MAX_FILE_BYTES * 2  # JSON string escaping can enlarge uploaded UTF-8
 
 def make_server(host, port, model, db):
     service = ImportService(model, History(db))
+    lab = ModelLab(model, service.history)
     page = Path(__file__).with_name('index.html').read_bytes()
 
     class Handler(BaseHTTPRequestHandler):
@@ -38,6 +40,14 @@ def make_server(host, port, model, db):
             try:
                 if route == '/':
                     return self.respond(200, page, 'text/html; charset=utf-8')
+                if route == '/api/lab/models':
+                    return self.respond(200, {'models': lab.catalog()})
+                if route == '/api/lab/stats':
+                    return self.respond(200, lab.stats())
+                if route == '/api/lab/jobs':
+                    return self.respond(200, {'jobs': lab.jobs()})
+                if route.startswith('/api/lab/jobs/'):
+                    return self.respond(200, lab.job(route.rsplit('/', 1)[-1]))
                 if route == '/api/history':
                     return self.respond(200, {'imports': service.history.list_imports(),
                                               'evaluations': service.history.list_evaluations()})
@@ -67,6 +77,12 @@ def make_server(host, port, model, db):
                 if not isinstance(body, dict):
                     raise ValueError('Expected a JSON object')
                 route = urlsplit(self.path).path
+                if route == '/api/lab/predict':
+                    return self.respond(200, lab.predict(body))
+                if route == '/api/lab/jobs':
+                    return self.respond(202, lab.submit(body))
+                if route == '/api/lab/rating':
+                    return self.respond(200, lab.rate(body.get('run_id'), body.get('rating')))
                 if route in ('/api/validate', '/api/import'):
                     filename, text = body.get('filename'), body.get('text')
                     if not isinstance(filename, str) or not isinstance(text, str):
@@ -83,13 +99,26 @@ def make_server(host, port, model, db):
                 self.respond(404, {'error': 'Not found'})
             except ValidationError as exc:
                 self.respond(422, {'error': str(exc), 'validation': exc.report})
+            except QueueFull as exc:
+                self.respond(429, {'error': str(exc)})
+            except KeyError:
+                self.respond(404, {'error': 'Not found'})
             except (ValueError, UnicodeError) as exc:
                 self.respond(400, {'error': str(exc)})
             except Exception:
                 LOGGER.exception('Import/evaluation request failed')
                 self.respond(500, {'error': 'Не вдалося обробити запит. Перевірте модель і журнал сервера.'})
 
-    server = ThreadingHTTPServer((host, port), Handler)
+    class LabServer(ThreadingHTTPServer):
+        def server_close(self):
+            super().server_close()
+            lab.close()
+
+    try:
+        server = LabServer((host, port), Handler)
+    except Exception:
+        lab.close()
+        raise
     server.daemon_threads = True
     return server
 

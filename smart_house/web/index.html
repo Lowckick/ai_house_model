@@ -2,15 +2,51 @@
 <html lang="uk">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Smart House — власні вимірювання</title>
+<title>Smart House — лабораторія моделей</title>
 <style>
 :root{font-family:system-ui,sans-serif;color:#17324d;background:#f1f5f9}*{box-sizing:border-box}body{margin:0}header{background:#163a5f;color:white;padding:24px max(20px,calc((100vw - 1180px)/2))}header p{color:#c8deee;margin-bottom:0}h1{font-size:1.6rem;margin:0}main{max-width:1180px;margin:24px auto;padding:0 16px}section{background:white;border:1px solid #d6e2ec;border-radius:12px;padding:22px;margin-bottom:20px}h2{font-size:1.2rem;margin-top:0}button,.download{border:0;border-radius:7px;background:#17617b;color:white;padding:10px 15px;cursor:pointer;font:inherit;display:inline-block;text-decoration:none}button.secondary{background:#e5edf4;color:#17324d}button{max-width:100%;overflow-wrap:anywhere}button:disabled{opacity:.45;cursor:wait}input{min-width:0;font:inherit;max-width:100%;padding:8px;border:1px solid #b7cbd8;border-radius:6px}label{max-width:100%;display:inline-flex;gap:8px;align-items:center;margin:8px 12px 8px 0}.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0}.hint{font-size:.9rem;color:#526b7b}#status{white-space:pre-wrap;min-height:28px;font-weight:600}#status.error{color:#a32727}#status.ok{color:#176342}.scroll{overflow:auto;max-height:480px}table{border-collapse:collapse;width:100%;font-size:.9rem}th,td{padding:10px;border-bottom:1px solid #dde7ed;text-align:left;vertical-align:top}th{background:#f3f7fa;position:sticky;top:0}ul{padding-left:22px}.messages{max-height:230px;overflow:auto}.badge{display:inline-block;padding:3px 8px;border-radius:5px;background:#e6f1f4}details{margin:6px 0}pre{white-space:pre-wrap;word-break:break-word;font-size:.8rem}canvas{max-width:100%;width:100%;height:230px}a{color:#17617b}.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}@media(max-width:760px){.grid{grid-template-columns:1fr}section{padding:16px}}button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #edb949;outline-offset:3px}
-</style>
+select,textarea{font:inherit;max-width:100%;padding:8px;border:1px solid #b7cbd8;border-radius:6px}textarea{width:100%;min-height:180px;font-family:monospace}.cards{display:flex;flex-wrap:wrap;gap:12px}.card{background:#f0f6f9;padding:14px;border-radius:8px;min-width:140px}.card strong{display:block;font-size:1.5rem}.pass{color:#176342}.fail{color:#a32727}</style>
+<style>label{flex-wrap:wrap}select{min-width:0}.grid>*{min-width:0}</style>
 </head>
 <body>
-<header><h1>Smart House · Власні вимірювання</h1><p>Завантаження показників, зрозумілі рекомендації та перевірка моделі</p></header>
+<header><h1>Smart House · Лабораторія моделей</h1><p>Тестування, порівняння моделей, автоматичні перевірки та ефективність будинку</p></header>
 <main>
 <div id="status" role="status" aria-live="polite"></div>
+<section aria-labelledby="lab-title">
+<h2 id="lab-title">Майданчик тестування</h2>
+<p>Змініть показники будинку та отримайте рішення вибраної моделі з поясненнями правил безпеки. Модель працює локально на CPU.</p>
+<label>Модель <select id="lab-model" aria-label="Модель для тестування"></select></label>
+<label>Приклад <select id="lab-preset"><option value="normal">Звичайні умови</option><option value="cold">Холод</option><option value="co2">Високий CO₂ під час сну</option><option value="smoke">Дим / PM2.5</option></select></label>
+<label for="lab-reading">Показники JSON</label>
+<textarea id="lab-reading" spellcheck="false" aria-describedby="lab-assumptions"></textarea>
+<p id="lab-assumptions" class="hint">Формат та припущення такі самі, як для імпорту нижче. Зовнішня погода: 15 °C, вологість 60%, хмарність 50%. Налаштування DQN фіксовані: epsilon=0, правила безпеки завжди ввімкнені. Тест не керує фізичними пристроями.</p>
+<div class="actions"><button id="lab-predict">Перевірити рішення</button><button id="lab-export" class="secondary" hidden>Завантажити тест JSON</button></div>
+<div id="lab-output" aria-live="polite"></div>
+<div id="lab-rating-box" hidden><label>Ваша оцінка <select id="lab-rating"><option value="5">5 — відмінно</option><option value="4">4 — добре</option><option value="3">3 — задовільно</option><option value="2">2 — погано</option><option value="1">1 — неприйнятно</option></select></label><button id="lab-rate" class="secondary">Зберегти оцінку</button></div>
+</section>
+<section aria-labelledby="compare-title">
+<h2 id="compare-title">Порівняння моделей та автоматичні перевірки</h2>
+<p>Виберіть до трьох моделей. Кожна проходить однакові сезонні сценарії й сім перевірок правил безпеки. Результати містять комфорт, енергоспоживання, винагороду та кількість небезпечних кроків.</p>
+<div id="lab-models" class="actions"></div>
+<label>Епізоди <input id="lab-episodes" type="number" min="1" max="20" value="5"></label>
+<label>Кроки по 10 хв <input id="lab-steps" type="number" min="1" max="144" value="144"></label>
+<label>Seed <input id="lab-seed" type="number" min="0" max="4294967275" value="42"></label>
+<label>Попередній запуск для перевірки регресій <select id="lab-reference"><option value="">Без порівняння з попереднім запуском</option></select></label>
+<p class="hint">Для регресії потрібні однакові епізоди, кроки та seed. Еталон — перша модель вибраного запуску. Допуски: комфорт не нижчий більш ніж на 1 відсотковий пункт; енергія не вища більш ніж на 5%; небезпечних кроків не більше. Це критерії перевірки, а не гарантія якості в реальному будинку.</p>
+<div class="actions"><button id="lab-submit">Запустити у фоні</button><button id="lab-export-job" class="secondary" hidden>Завантажити порівняння JSON</button></div>
+<p id="lab-job-status" role="status" aria-live="polite"></p>
+<div id="lab-job-result" class="scroll"></div>
+<details><summary>Збережені фонові запуски</summary><div id="lab-jobs"></div></details>
+</section>
+<section aria-labelledby="stats-title">
+<h2 id="stats-title">Ефективність і журнал тестів</h2>
+<div class="actions"><button id="lab-refresh" class="secondary">Оновити статистику</button></div>
+<div id="lab-stats" class="cards"></div>
+<p class="hint">Статистика стосується лабораторії. Затримка включає завантаження моделі на першому запиті; оцінювання має окрему тривалість. Повторні однакові тести беруться з кешу (до 128 результатів); одночасно зберігається до трьох завантажених моделей. Локальний inference не має тарифу API; вартість обладнання й електроенергії не розраховується.</p>
+<div id="lab-breakdown" class="scroll"></div>
+<details><summary>Останні 100 запитів і помилок</summary><div id="lab-log" class="scroll"></div></details>
+</section>
+
 <section>
 <h2>1. Завантажте та перевірте файл</h2>
 <p>JSON або текстова таблиця CSV/TXT з комами. Обов’язкові поля: <code>timestamp</code>, <code>temperature_c</code>, <code>humidity_pct</code>.</p>
@@ -65,5 +101,28 @@ $('evaluate').onclick=()=>task(async()=>{message('Виконується пор�
 $('download-evaluation').onclick=()=>currentEvaluation&&download('evaluation.json',currentEvaluation);
 async function refresh(){const data=await api('/api/history');for(const [id,items,prefix,show] of [['history',data.imports,'/api/imports/',showImport],['evaluations',data.evaluations,'/api/evaluations/',showEvaluation]]){const box=$(id);box.replaceChildren();if(!items.length)box.append(node('p','Ще немає записів.'));for(const item of items){const row=node('p'),b=node('button',item.filename?`#${item.id} · ${item.filename} · ${item.count} записів`:`Оцінка #${item.id}`);b.className='secondary';b.onclick=()=>task(async()=>{show(await api(prefix+item.id));message('Відкрито збережений результат.');});row.append(b,node('small',' '+new Date(item.created_at).toLocaleString('uk-UA')));box.append(row);}}}
 $('refresh').onclick=()=>task(refresh);task(refresh);
+</script>
+
+<script>
+let labPrediction=null,labJob=null,labTimer=null;
+const labNames=new Map();
+function labPreset(){const presets={normal:{},cold:{temperature_c:0},co2:{co2_ppm:2000,occupant_activity:'sleeping'},smoke:{pm25_ugm3:80}};$('lab-reading').value=JSON.stringify({timestamp:'2026-10-26T12:00:00+02:00',temperature_c:22,humidity_pct:50,total_occupants:2,...presets[$('lab-preset').value]},null,2);}
+$('lab-preset').onchange=labPreset;labPreset();
+async function labAction(button,fn){button.disabled=true;try{await fn();}catch(e){message(e.message,true);if(e.report)showValidation(e.report);}finally{button.disabled=false;}}
+function labTable(headings,rows){const table=node('table'),head=node('tr');for(const h of headings)head.append(node('th',h));table.append(head);for(const values of rows){const row=node('tr');for(const value of values)row.append(node('td',String(value??'—')));table.append(row);}return table;}
+function labChecks(checks){const list=node('ul');for(const check of checks){const item=node('li',(check.passed?'✓ ':'✗ ')+check.name+(check.field?` · ${check.field}: ${check.actual}`:''));item.className=check.passed?'pass':'fail';list.append(item);}return list;}
+$('lab-predict').onclick=()=>labAction($('lab-predict'),async()=>{const reading=JSON.parse($('lab-reading').value);const data=await api('/api/lab/predict',{model_id:$('lab-model').value,reading});labPrediction=data;const r=data.readings[0];$('lab-output').replaceChildren(node('p',`${data.latency_ms.toFixed(2)} мс · ${data.cache_hit?'відповідь із кешу':'обчислено моделлю'} · дія ${r.action_index} · ${r.action_mode}`),node('p',deviceText(r.recommended_devices)));const detail=node('details');detail.append(node('summary','Повне рішення та пояснення'),node('pre',JSON.stringify(r,null,2)));$('lab-output').append(detail);$('lab-export').hidden=false;$('lab-rating-box').hidden=false;await labStats();message('Тест завершено, результат збережено в журналі.');});
+$('lab-export').onclick=()=>labPrediction&&download('model-test.json',labPrediction);
+$('lab-rate').onclick=()=>labAction($('lab-rate'),async()=>{if(!labPrediction)return;await api('/api/lab/rating',{run_id:labPrediction.run_id,rating:Number($('lab-rating').value)});await labStats();message('Оцінку збережено.');});
+function showLabJob(job){labJob=job;const labels={queued:'У черзі',running:'Виконується',completed:'Завершено',failed:'Помилка',interrupted:'Перервано після перезапуску сервера'};$('lab-job-status').textContent=`${labels[job.status]||job.status} · ${job.id.slice(0,8)}${job.error?' · '+job.error:''}`;$('lab-job-result').replaceChildren();$('lab-export-job').hidden=!job.result;if(!job.result)return;const result=job.result;const rows=result.models.map(m=>[labNames.get(m.model_id)||m.model_id,m.model_sha256.slice(0,12),...['avg_comfort','energy_kwh','total_reward','unsafe_steps'].map(k=>m.summary.model[k].toFixed(3))]);const baseline=result.models[0].summary.deterministic;rows.push(['Детермінована система','—',...['avg_comfort','energy_kwh','total_reward','unsafe_steps'].map(k=>baseline[k].toFixed(3))]);$('lab-job-result').append(labTable(['Модель','SHA256','Комфорт % ↑','кВт·год ↓','Винагорода ↑','Небезпечні кроки ↓'],rows),node('p',`Тривалість: ${(result.duration_ms/1000).toFixed(2)} с. Середні результати за ${result.options.episodes} епізодами × ${result.options.steps} кроків, seed ${result.options.seed}.`));for(const model of result.models)$('lab-job-result').append(node('h3',`Перевірки: ${labNames.get(model.model_id)||model.model_id}`),labChecks(model.checks));for(const regression of result.regression)$('lab-job-result').append(node('h3',`Регресія: ${labNames.get(regression.model_id)||regression.model_id}`),labChecks(regression.checks));$('lab-job-result').append(node('p','Результати описують симулятор. Нижче енергоспоживання має оцінюватися разом із комфортом і безпекою.'));
+}
+async function watchLabJob(id){clearTimeout(labTimer);try{const job=await api('/api/lab/jobs/'+encodeURIComponent(id));showLabJob(job);if(['queued','running'].includes(job.status))labTimer=setTimeout(()=>watchLabJob(id),1200);else{await Promise.all([labJobs(),labStats()]);}}catch(e){message(e.message,true);$('lab-job-status').textContent='Не вдалося оновити стан. Відкрийте запуск зі списку повторно.';}}
+$('lab-submit').onclick=()=>labAction($('lab-submit'),async()=>{const model_ids=Array.from($('lab-models').querySelectorAll('input:checked')).map(n=>n.value);const job=await api('/api/lab/jobs',{model_ids,episodes:Number($('lab-episodes').value),steps:Number($('lab-steps').value),seed:Number($('lab-seed').value),reference_job:$('lab-reference').value||null});await labJobs();watchLabJob(job.id);message('Завдання додано до черги. Можна продовжувати роботу зі сторінкою.');});
+$('lab-export-job').onclick=()=>labJob&&download(`comparison-${labJob.id}.json`,labJob);
+async function labJobs(){const data=await api('/api/lab/jobs');$('lab-jobs').replaceChildren();const reference=$('lab-reference'),selected=reference.value;reference.replaceChildren(new Option('Без порівняння з попереднім запуском',''));for(const job of data.jobs){const b=node('button',`${job.id.slice(0,8)} · ${job.status} · ${new Date(job.created_at).toLocaleString('uk-UA')}`);b.className='secondary';b.onclick=()=>watchLabJob(job.id);const p=node('p');p.append(b);$('lab-jobs').append(p);if(job.status==='completed')reference.append(new Option(job.id.slice(0,8)+' · '+new Date(job.created_at).toLocaleString('uk-UA'),job.id));}if(Array.from(reference.options).some(o=>o.value===selected))reference.value=selected;return data.jobs;}
+async function labStats(){const data=await api('/api/lab/stats'),t=data.totals;$('lab-stats').replaceChildren();for(const [label,value] of [['Запити',t.requests],['Помилки',t.errors],['Влучання кешу',t.cache_hits],['Середня оцінка',t.avg_rating?.toFixed(2)??'—']]){const card=node('div');card.className='card';card.append(node('strong',String(value)),node('span',label));$('lab-stats').append(card);}$('lab-breakdown').replaceChildren(labTable(['Модель','Тип','Запити','Середній час, мс'],data.by_model.map(r=>[labNames.get(r.model_id)||r.model_id,r.kind,r.requests,r.avg_latency_ms.toFixed(2)])));$('lab-log').replaceChildren(labTable(['Час','Тип','Модель','мс','Кеш','Оцінка','Помилка'],data.recent.map(r=>[new Date(r.created_at).toLocaleString('uk-UA'),r.kind,labNames.get(r.model_id)||r.model_id,r.latency_ms.toFixed(2),r.cache_hit?'так':'ні',r.rating,r.error])));}
+$('lab-refresh').onclick=()=>labAction($('lab-refresh'),()=>Promise.all([labStats(),labJobs()]));
+async function initLab(){try{const data=await api('/api/lab/models');for(const model of data.models){labNames.set(model.id,model.name);$('lab-model').append(new Option(model.name,model.id));const label=node('label'),input=node('input');input.type='checkbox';input.value=model.id;input.checked=model.default;label.append(input,document.createTextNode(model.name));$('lab-models').append(label);}const [jobs]=await Promise.all([labJobs(),labStats()]);const active=jobs.find(j=>['queued','running'].includes(j.status));if(active)watchLabJob(active.id);}catch(e){message(e.message,true);}}
+initLab();
 </script>
 </body></html>

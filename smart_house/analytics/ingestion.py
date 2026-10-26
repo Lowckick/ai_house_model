@@ -31,7 +31,7 @@ class ImportService:
             self._digest = model_digest(self.model_path)
         return self._agent
 
-    def import_text(self, filename, text):
+    def analyze_text(self, filename, text):
         states, report = inspect_readings(text, Path(filename).suffix)
         if not report['valid']:
             raise ValidationError(report)
@@ -54,8 +54,13 @@ class ImportService:
                                     *(teacher_explanations(indoor, weather) if agent.action_mode == "residual_v1" else []),
                                     *changes]})
             digest = self._digest
+        return {'count': len(results), 'validation': report, 'readings': results,
+                'model_sha256': digest}
+
+    def import_text(self, filename, text):
+        result = self.analyze_text(filename, text)
         ident = self.history.save_import(Path(filename).name, hashlib.sha256(text.encode('utf-8')).hexdigest(),
-                                         digest, report, results)
+                                         result['model_sha256'], result['validation'], result['readings'])
         return self.history.get_import(ident)
 
     def evaluate(self, episodes=5, steps=144, seed=42):
