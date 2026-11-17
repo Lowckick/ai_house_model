@@ -24,21 +24,57 @@ def _threshold_devices(indoor):
     return d
 
 
+def _tuned_devices(indoor):
+    """Stronger staged thresholds: the base of residual_v2 and a fair, hand-tuned baseline."""
+    d = _threshold_devices(indoor)
+    t = indoor.temperature_c
+    d.hvac_mode = 2 if t < 19.5 else 1 if t < 20.5 else 4 if t > 25 else 3 if t > 24 else 0
+    c = indoor.co2_ppm
+    d.ventilation = 3 if c > 1300 else 2 if c > 1000 else 1 if c > 800 else 0
+    p = indoor.pm25_ugm3
+    d.air_purifier = 3 if p > 35 else 2 if p > 20 else 1 if p > 12 else 0
+    d.cleaner_bot = int(indoor.dirt_level > 15 and indoor.occupant_activity != 'sleeping')
+    return d
+
+
+# Residual action modes: same 19 corrections, different deterministic base controller.
+BASE_CONTROLLERS = {'residual_v1': _threshold_devices, 'residual_v2': _tuned_devices}
+RESIDUAL_MODES = frozenset(BASE_CONTROLLERS)
+
+
 def deterministic_devices(indoor, weather):
     return RuleLayer().apply(_threshold_devices(indoor), indoor, weather)
 
 
-def teacher_explanations(indoor, weather):
-    """Explain inherited controller decisions as well as its final safety constraints."""
-    from dataclasses import asdict
-    raw = _threshold_devices(indoor)
-    reasons = {
+def tuned_deterministic_devices(indoor, weather):
+    return RuleLayer().apply(_tuned_devices(indoor), indoor, weather)
+
+
+def _reasons(indoor, mode):
+    if mode == 'residual_v2':
+        return {
+            'hvac_mode': f'Термостат: {indoor.temperature_c:g} °C; сильний обігрів нижче 19.5, слабкий нижче 20.5, '
+                         'охолодження вище 24, сильне вище 25.',
+            'ventilation': f'CO₂ {indoor.co2_ppm:g} ppm; вентиляція 1/2/3 понад 800/1000/1300.',
+            'air_purifier': f'PM2.5 {indoor.pm25_ugm3:g}; очищувач 1/2/3 понад 12/20/35.',
+            'humidifier_mode': f'Вологість {indoor.humidity_pct:g}%; зволоження нижче 40%, осушення вище 60%.',
+            'cleaner_bot': f'Забруднення {indoor.dirt_level:g}%, активність {indoor.occupant_activity}; прибирання понад 15%, крім сну.',
+        }
+    return {
         'hvac_mode': f'Термостат: {indoor.temperature_c:g} °C; обігрів нижче 20, охолодження вище 24.',
         'ventilation': f'CO₂ {indoor.co2_ppm:g} ppm; вентиляція 1 при значенні понад 1000.',
         'air_purifier': f'PM2.5 {indoor.pm25_ugm3:g}; очищувач 1 при значенні понад 12.',
         'humidifier_mode': f'Вологість {indoor.humidity_pct:g}%; зволоження нижче 40%, осушення вище 60%.',
         'cleaner_bot': f'Забруднення {indoor.dirt_level:g}%, активність {indoor.occupant_activity}; прибирання понад 30%, крім сну.',
     }
+
+
+def teacher_explanations(indoor, weather, mode='residual_v1'):
+    """Explain inherited controller decisions as well as its final safety constraints."""
+    if mode not in RESIDUAL_MODES:
+        raise ValueError('Unknown residual action mode')
+    raw = BASE_CONTROLLERS[mode](indoor)
+    reasons = _reasons(indoor, mode)
     records = [{'source': 'teacher', 'stage': 'deterministic', 'field': field,
                 'before': getattr(DeviceState(), field), 'after': getattr(raw, field), 'reason': reason}
                for field, reason in reasons.items()]
@@ -47,10 +83,12 @@ def teacher_explanations(indoor, weather):
     return records
 
 
-def residual_devices(index, indoor, weather):
+def residual_devices(index, indoor, weather, mode='residual_v1'):
     if not 0 <= index < len(RESIDUAL_ACTIONS):
         raise ValueError('Invalid residual action index')
-    devices = deterministic_devices(indoor, weather)
+    if mode not in RESIDUAL_MODES:
+        raise ValueError('Unknown residual action mode')
+    devices = RuleLayer().apply(BASE_CONTROLLERS[mode](indoor), indoor, weather)
     field, value = RESIDUAL_ACTIONS[index]
     if field is not None:
         setattr(devices, field, value)

@@ -26,15 +26,29 @@ def cmd_train(args):
     seeds = args.seeds or [42]
     output = args.output_dir or str(Path(__file__).resolve().parent / 'data/user/training' /
              datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ'))
+    references = args.reference_model or []
+    if args.method == 'rollout':
+        from smart_house.ml.experiments import run_rollout_experiment
+        if args.resume:
+            raise ValueError('--resume is supported only by --method dqn')
+        run_rollout_experiment(output, seeds=seeds, rounds=args.rounds, episodes=args.rollout_episodes,
+                               steps=args.steps, horizon=args.horizon, samples=args.rollout_samples,
+                               epochs=args.distill_epochs, temperature=args.temperature, workers=args.workers,
+                               validation_episodes=args.validation_episodes or 12,
+                               test_episodes=args.test_episodes or 20, test_seeds=args.test_seeds,
+                               reference_models=references)
+        return
+    if len(references) > 1:
+        raise ValueError('--method dqn accepts one --reference-model')
     callback = None
     if not args.no_ui and len(seeds) == 1:
         from smart_house.dashboard.display import LiveDashboard
         callback = lambda trainer, episodes: LiveDashboard().run_with_trainer(trainer, episodes)
     run_experiment(output, seeds=seeds, episodes=args.episodes, steps=args.steps,
                    warmup_episodes=args.warmup_episodes, warmup_epochs=args.warmup_epochs,
-                   validation_interval=args.validation_interval, validation_episodes=args.validation_episodes,
-                   test_episodes=args.test_episodes, resume=args.resume,
-                   reference_model=args.reference_model, train_callback=callback)
+                   validation_interval=args.validation_interval, validation_episodes=args.validation_episodes or 6,
+                   test_episodes=args.test_episodes or 12, resume=args.resume,
+                   reference_model=references[0] if references else None, train_callback=callback)
 
 
 def cmd_simulate(args):
@@ -187,7 +201,9 @@ def main(argv=None):
     default_model = os.path.join(os.path.dirname(__file__), "data", "model.pt")
 
     # train
-    p_train = sub.add_parser("train", help="Train the DQN agent")
+    p_train = sub.add_parser("train", help="Train a residual policy (DQN or rollout distillation)")
+    p_train.add_argument("--method", choices=("dqn", "rollout"), default="dqn",
+                         help="dqn: original warmup + DQN; rollout: rollout labels distilled into the network (residual_v2)")
     p_train.add_argument("--episodes", type=int, default=200, help="Number of training episodes")
     p_train.add_argument("--no-ui", action="store_true", help="Disable live dashboard")
     p_train.add_argument("--no-api", action="store_true", help="Compatibility flag: training always uses seasonal synthetic weather")
@@ -197,11 +213,21 @@ def main(argv=None):
     p_train.add_argument("--warmup-episodes", type=int, default=12)
     p_train.add_argument("--warmup-epochs", type=int, default=5)
     p_train.add_argument("--validation-interval", type=int, default=5)
-    p_train.add_argument("--validation-episodes", type=int, default=6)
-    p_train.add_argument("--test-episodes", type=int, default=12)
+    p_train.add_argument("--validation-episodes", type=int, help="Default: 6 for dqn, 12 for rollout")
+    p_train.add_argument("--test-episodes", type=int, help="Default: 12 for dqn, 20 for rollout")
     p_train.add_argument("--threads", type=int, choices=range(1, 17), default=2)
     p_train.add_argument("--resume", help="Warm start from a residual checkpoint; replay buffer is regenerated")
-    p_train.add_argument("--reference-model", help="Optional old checkpoint to evaluate on identical test scenarios")
+    p_train.add_argument("--reference-model", action="append",
+                         help="Checkpoint to evaluate on identical test scenarios (repeatable for rollout)")
+    p_train.add_argument("--rounds", type=int, default=3, help="rollout: labelling rounds (first expert, then DAgger)")
+    p_train.add_argument("--rollout-episodes", type=int, default=48, help="rollout: new training episodes per round")
+    p_train.add_argument("--horizon", type=int, default=18, help="rollout: lookahead steps of 10 minutes")
+    p_train.add_argument("--rollout-samples", type=int, default=1, help="rollout: noise samples per label")
+    p_train.add_argument("--distill-epochs", type=int, default=30)
+    p_train.add_argument("--temperature", type=float, default=0.05, help="rollout: soft-label temperature, 0 = hard labels")
+    p_train.add_argument("--workers", type=int, help="rollout: labelling processes; default min(4, CPU count)")
+    p_train.add_argument("--test-seeds", type=int, nargs="+", default=[20000, 31000],
+                         help="rollout: test scenario seeds, evaluated only after selection")
 
     # simulate
     p_sim = sub.add_parser("simulate", help="Live simulation (inference only)")

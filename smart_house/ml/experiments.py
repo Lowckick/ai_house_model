@@ -63,3 +63,56 @@ def run_experiment(output_dir, seeds=(42, 43, 44), episodes=200, *,
     (root / 'experiment.json').write_text(json.dumps(report, indent=2, allow_nan=False), encoding='utf-8')
     print(f"Selected by validation: {selected_path}; test report: {root / 'experiment.json'}", flush=True)
     return report
+
+
+def run_rollout_experiment(output_dir, seeds=(42, 43, 44), *, rounds=3, episodes=48, steps=144,
+                           horizon=18, samples=1, epochs=30, temperature=0.05, workers=None,
+                           validation_episodes=12, test_episodes=20, test_seeds=(20000, 31000),
+                           reference_models=()):
+    """Rollout distillation per training seed; winner fixed on validation before any test run."""
+    from smart_house.ml.rollout import METHOD, selection_key as rollout_key, train_rollout
+    if not seeds or len(seeds) > 10 or len(set(seeds)) != len(seeds):
+        raise ValueError('Provide 1–10 distinct training seeds')
+    if any(type(seed) is not int or not 0 <= seed <= 2**32 - 21 for seed in seeds):
+        raise ValueError('Training seeds must be integers from 0 to 4294967275')
+    if not 1 <= test_episodes <= 20 or not test_seeds:
+        raise ValueError('Test episodes must be from 1 to 20 and at least one test seed is required')
+    root = Path(output_dir)
+    if root.exists() and any(root.iterdir()):
+        raise ValueError('Experiment output directory must be new or empty')
+    root.mkdir(parents=True, exist_ok=True)
+    runs = []
+    for seed in seeds:
+        history = train_rollout(root / f'seed-{seed}', seed=seed, rounds=rounds, episodes=episodes, steps=steps,
+                                horizon=horizon, samples=samples, epochs=epochs, temperature=temperature,
+                                workers=workers, validation_episodes=validation_episodes)
+        runs.append({'seed': seed, 'best_round': history['best_round'], 'margin': history['best_margin'],
+                     'checkpoint': str(root / f'seed-{seed}' / 'best.pt'), 'validation': history['best_validation']})
+    winner = max(runs, key=lambda run: rollout_key(run['validation']))
+    selected_path = root / 'best.pt'
+    shutil.copyfile(winner['checkpoint'], selected_path)
+    report = {'protocol_version': 3, 'method': METHOD, 'selected_seed': winner['seed'],
+              'selected_checkpoint': str(selected_path), 'selected_sha256': model_digest(selected_path),
+              'selection': 'validation only: unsafe steps above the tuned baseline first, then highest reward',
+              'test_seeds': list(test_seeds), 'runs': runs,
+              'note': 'Simulation results. The network replaces the rollout planner at inference; '
+                      'the residual policy includes its deterministic base controller and safety rules.'}
+    (root / 'selection.json').write_text(json.dumps(report, indent=2, allow_nan=False), encoding='utf-8')
+    metrics = ('avg_comfort', 'energy_kwh', 'total_reward', 'unsafe_steps')
+    for run in runs:
+        agent = load_agent(run['checkpoint'])
+        run['test'] = {str(s): compare_controllers(agent, test_episodes, 144, seed=s, split='test', include_tuned=True)
+                       for s in test_seeds}
+    report['test_across_training_seeds'] = {
+        str(s): {metric: {'mean': mean(run['test'][str(s)]['summary']['model'][metric] for run in runs),
+                          'stddev': stdev(run['test'][str(s)]['summary']['model'][metric] for run in runs)
+                          if len(runs) > 1 else None} for metric in metrics}
+        for s in test_seeds}
+    report['references'] = [{'model': str(model), 'sha256': model_digest(model),
+                             'test': {str(s): compare_controllers(load_agent(model), test_episodes, 144, seed=s,
+                                                                  split='test', include_tuned=True)
+                                      for s in test_seeds}}
+                            for model in reference_models]
+    (root / 'experiment.json').write_text(json.dumps(report, indent=2, allow_nan=False), encoding='utf-8')
+    print(f"Selected by validation: {selected_path}; test report: {root / 'experiment.json'}", flush=True)
+    return report

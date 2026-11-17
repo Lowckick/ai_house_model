@@ -49,9 +49,9 @@ class ImportService:
                                 'deterministic_devices': asdict(deterministic_devices(indoor, weather)),
                                 'explanations': [
                                     {'source': 'model', 'reason': 'Обрано дію з найбільшою Q-оцінкою моделі (epsilon=0). ' +
-                                     ('Політика коригує детермінований контролер; дія 0 залишає його рішення. ' if agent.action_mode == 'residual_v1' else '') +
+                                     ('Політика коригує детермінований контролер; дія 0 залишає його рішення. ' if agent.residual else '') +
                                      'Причини нейронної оцінки не інтерпретуються; зміни правил наведено окремо.'},
-                                    *(teacher_explanations(indoor, weather) if agent.action_mode == "residual_v1" else []),
+                                    *(teacher_explanations(indoor, weather, agent.action_mode) if agent.residual else []),
                                     *changes]})
             digest = self._digest
         return {'count': len(results), 'validation': report, 'readings': results,

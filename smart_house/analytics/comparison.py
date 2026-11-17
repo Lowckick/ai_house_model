@@ -7,7 +7,7 @@ from smart_house.environment.indoor_state import DeviceState
 from smart_house.environment.weather import WeatherSnapshot
 from smart_house.ml.agent import SmartHomeDQNAgent, encode_state
 from smart_house.ml.rule_layer import RuleLayer
-from smart_house.ml.controller import deterministic_devices
+from smart_house.ml.controller import deterministic_devices, tuned_deterministic_devices
 from smart_house.environment.scenarios import make_scenario
 
 
@@ -35,18 +35,18 @@ def assumed_weather(indoor):
                            0.0, 0.0, 6 <= indoor.timestamp.hour < 20, 'cloudy')
 
 
-def compare_controllers(agent, episodes=5, steps=144, seed=42, split='test'):
+def compare_controllers(agent, episodes=5, steps=144, seed=42, split='test', include_tuned=False):
     epsilon, training = agent.epsilon, agent.policy_net.training
     agent.epsilon = 0.0
     agent.policy_net.eval()
     try:
-        return _compare(agent, episodes, steps, seed, split)
+        return _compare(agent, episodes, steps, seed, split, include_tuned)
     finally:
         agent.epsilon = epsilon
         agent.policy_net.train(training)
 
 
-def _compare(agent, episodes, steps, seed, split):
+def _compare(agent, episodes, steps, seed, split, include_tuned=False):
     if type(episodes) is not int or not 1 <= episodes <= 20:
         raise ValueError('episodes must be an integer from 1 to 20')
     if type(steps) is not int or not 1 <= steps <= 144:
@@ -55,12 +55,13 @@ def _compare(agent, episodes, steps, seed, split):
         raise ValueError('seed must be an integer from 0 to 4294967275')
     if split not in {'validation', 'test'}:
         raise ValueError('Comparison requires validation or test scenarios')
+    names = ('model', 'deterministic', 'tuned') if include_tuned else ('model', 'deterministic')
     trials = []
     for episode in range(episodes):
         scenario = make_scenario(split, episode, seed)
         weather_trace = scenario.weather_trace(steps)
         outcomes = {}
-        for name in ('model', 'deterministic'):
+        for name in names:
             physics = scenario.environment()
             devices = DeviceState()
             comfort, rewards, powers, violations = [], [], [], 0
@@ -69,6 +70,8 @@ def _compare(agent, episodes, steps, seed, split):
                 if name == 'model':
                     action = agent.select_action(encode_state(state, weather, devices))
                     chosen = RuleLayer().apply(agent.decode_action(action, devices, state, weather), state, weather)
+                elif name == 'tuned':
+                    chosen = tuned_deterministic_devices(state, weather)
                 else:
                     chosen = deterministic_devices(state, weather)
                 state = physics.step(weather, chosen)
@@ -83,11 +86,19 @@ def _compare(agent, episodes, steps, seed, split):
         trials.append({'scenario': scenario.describe(), **outcomes})
     metrics = ('avg_comfort', 'energy_kwh', 'total_reward', 'unsafe_steps')
     summary = {name: {metric: mean(t[name][metric] for t in trials) for metric in metrics}
-               for name in ('model', 'deterministic')}
+               for name in names}
     delta = {metric: summary['model'][metric] - summary['deterministic'][metric] for metric in metrics}
     variability = {metric: (stdev(t['model'][metric] - t['deterministic'][metric] for t in trials)
                             if episodes > 1 else None) for metric in metrics}
-    return {'protocol_version': 2, 'split': split, 'action_mode': agent.action_mode,
+    extra = {}
+    if include_tuned:
+        extra = {'delta_model_minus_tuned': {metric: summary['model'][metric] - summary['tuned'][metric] for metric in metrics},
+                 'paired_delta_stddev_vs_tuned': {metric: (stdev(t['model'][metric] - t['tuned'][metric] for t in trials)
+                                                           if episodes > 1 else None) for metric in metrics},
+                 'tuned_baseline': 'Staged thresholds: heat high <19.5 C, low <20.5 C, cool >24 C, high >25 C; '
+                                   'ventilation 1/2/3 above 800/1000/1300 ppm; purifier 1/2/3 above 12/20/35 ug/m3; '
+                                   'humidity 40-60%; clean above 15% dirt. Same shared rules.'}
+    return {**extra, 'protocol_version': 2, 'split': split, 'action_mode': agent.action_mode,
             'reward_version': agent.reward_fn.VERSION, 'episodes': episodes, 'steps_per_episode': steps, 'seed': seed,
             'summary': summary, 'delta_model_minus_deterministic': delta,
             'paired_delta_stddev': variability, 'trials': trials,
