@@ -90,6 +90,28 @@ def residual_devices(index, indoor, weather, mode='residual_v1'):
         raise ValueError('Unknown residual action mode')
     devices = RuleLayer().apply(BASE_CONTROLLERS[mode](indoor), indoor, weather)
     field, value = RESIDUAL_ACTIONS[index]
-    if field is not None:
+    if field is not None and (mode == 'residual_v1' or correction_allowed(field, value, devices, indoor)):
         setattr(devices, field, value)
     return devices
+
+
+def correction_allowed(field, value, base, indoor):
+    """residual_v2 corrections may not weaken the base where a reading is already outside comfort.
+
+    Without this, a learned policy can save heat by idling ventilation at night and let CO2 hover
+    at the 1500 ppm safety threshold, relying on the final rule layer. A disallowed correction is
+    ignored: the base decision is kept.
+    """
+    if field == 'ventilation' and indoor.co2_ppm > 1000:
+        return value >= base.ventilation
+    if field == 'air_purifier' and indoor.pm25_ugm3 > 35:
+        return value >= base.air_purifier
+    if field == 'hvac_mode' and indoor.temperature_c < 19:
+        return value in (1, 2) and (value == 2 or base.hvac_mode != 2)
+    if field == 'hvac_mode' and indoor.temperature_c > 25:
+        return value in (3, 4) and (value == 4 or base.hvac_mode != 4)
+    if field == 'humidifier_mode' and indoor.humidity_pct < 35:
+        return value == 1
+    if field == 'humidifier_mode' and indoor.humidity_pct > 65:
+        return value == 2
+    return True

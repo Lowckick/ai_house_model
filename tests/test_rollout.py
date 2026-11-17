@@ -33,6 +33,13 @@ class RolloutTests(unittest.TestCase):
         self.assertEqual(residual_devices(0, cold, weather, 'residual_v1').hvac_mode, 1)
         with self.assertRaises(ValueError):
             residual_devices(0, cold, weather, 'residual_v9')
+        # Corrections cannot weaken the base where readings are already outside comfort.
+        vent0, hvac0 = RESIDUAL_ACTIONS.index(('ventilation', 0)), RESIDUAL_ACTIONS.index(('hvac_mode', 0))
+        self.assertEqual(residual_devices(vent0, cold, weather, 'residual_v2'), tuned)
+        self.assertEqual(residual_devices(hvac0, cold, weather, 'residual_v2'), tuned)
+        self.assertEqual(residual_devices(vent0, cold, weather, 'residual_v1').ventilation, 0)
+        mild = IndoorState(temperature_c=21, co2_ppm=900)
+        self.assertEqual(residual_devices(vent0, mild, assumed_weather(mild), 'residual_v2').ventilation, 0)
         explanations = teacher_explanations(cold, weather, 'residual_v2')
         self.assertIn('19.5', next(e['reason'] for e in explanations if e['field'] == 'hvac_mode'))
 
