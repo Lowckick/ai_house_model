@@ -92,7 +92,10 @@ def run_rollout_experiment(output_dir, seeds=(42, 43, 44), *, rounds=3, episodes
     winner = max(runs, key=lambda run: rollout_key(run['validation']))
     selected_path = root / 'best.pt'
     shutil.copyfile(winner['checkpoint'], selected_path)
-    report = {'protocol_version': 3, 'method': METHOD, 'reward_version': reward_version, 'hold': hold, 'selected_seed': winner['seed'],
+    from dataclasses import asdict
+    from smart_house.environment.indoor_state import IndoorPhysicsSimulator
+    report = {'protocol_version': 3, 'method': METHOD, 'reward_version': reward_version, 'hold': hold,
+              'physics': asdict(IndoorPhysicsSimulator.PARAMS), 'selected_seed': winner['seed'],
               'selected_checkpoint': str(selected_path), 'selected_sha256': model_digest(selected_path),
               'selection': 'validation only: unsafe steps above the tuned baseline first, then highest reward',
               'test_seeds': list(test_seeds), 'runs': runs,

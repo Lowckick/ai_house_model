@@ -173,7 +173,11 @@ def train_rollout(output_dir, *, seed=42, mode='residual_v2', rounds=3, episodes
                'samples': samples, 'hold': hold, 'epochs': epochs, 'temperature': temperature,
                'validation_episodes': validation_episodes, 'margins': list(MARGINS), 'history': []}
     all_states, all_values, best_key = [], [], None
-    pool = get_context().Pool(workers) if workers > 1 else None
+    from dataclasses import asdict
+    from smart_house.environment.indoor_state import IndoorPhysicsSimulator, set_physics
+    physics = IndoorPhysicsSimulator.PARAMS
+    history['physics'] = asdict(physics)
+    pool = get_context().Pool(workers, initializer=set_physics, initargs=(physics,)) if workers > 1 else None
     try:
         for round_index in range(rounds):
             started = time.monotonic()

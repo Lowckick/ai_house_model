@@ -35,6 +35,12 @@ def assumed_weather(indoor):
                            0.0, 0.0, 6 <= indoor.timestamp.hour < 20, 'cloudy')
 
 
+def _physics():
+    from dataclasses import asdict
+    from smart_house.environment.indoor_state import IndoorPhysicsSimulator
+    return asdict(IndoorPhysicsSimulator.PARAMS)
+
+
 def compare_controllers(agent, episodes=5, steps=144, seed=42, split='test', include_tuned=False, reward_fn=None):
     """``reward_fn`` overrides the agent's reward so models trained with different rewards share one scale."""
     epsilon, training = agent.epsilon, agent.policy_net.training
@@ -104,7 +110,8 @@ def _compare(agent, episodes, steps, seed, split, include_tuned, reward_fn):
                                    'humidity 40-60%; clean above 15% dirt. Same shared rules.'}
     return {**extra, 'protocol_version': 2, 'split': split, 'action_mode': agent.action_mode,
             'reward_version': reward_fn.VERSION,
-            'tariff': 'day 4.32 UAH/kWh, night (23-07) x0.5', 'rules_version': RuleLayer.VERSION, 'episodes': episodes, 'steps_per_episode': steps, 'seed': seed,
+            'tariff': 'day 4.32 UAH/kWh, night (23-07) x0.5', 'rules_version': RuleLayer.VERSION,
+            'physics': _physics(), 'episodes': episodes, 'steps_per_episode': steps, 'seed': seed,
             'summary': summary, 'delta_model_minus_deterministic': delta,
             'paired_delta_stddev': variability, 'trials': trials,
             'unsafe_thresholds': {'temperature_c': [5, 32], 'co2_ppm_max': 1500, 'pm25_ugm3_max': 55},

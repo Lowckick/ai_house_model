@@ -17,7 +17,16 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 
+def apply_physics(args):
+    """--physics calibration.json replaces the simulator's default building parameters."""
+    if getattr(args, "physics", None):
+        from smart_house.analytics.calibration import load_params
+        from smart_house.environment.indoor_state import set_physics
+        set_physics(load_params(args.physics))
+
+
 def cmd_train(args):
+    apply_physics(args)
     import datetime
     import torch
     from pathlib import Path
@@ -216,6 +225,39 @@ def cmd_shadow_report(args):
     print(f"{report['readings']} readings of {args.sensor} in the last {args.hours} h; report: {args.output}")
 
 
+def cmd_calibrate(args):
+    """Fit simulator parameters to recorded readings (a live sensor or a readings file)."""
+    from pathlib import Path
+    from smart_house.analytics.calibration import calibrate, rows_from_records
+    if Path(args.output).exists():
+        raise ValueError("Output already exists; choose a new --output path")
+    if bool(args.sensor) == bool(args.input):
+        raise ValueError("Give exactly one of --sensor (live readings) or --input (readings file)")
+    if args.sensor:
+        import datetime as dt
+        from smart_house.analytics.history import History
+        from smart_house.analytics.ingestion import ImportService
+        from smart_house.analytics.live import LiveService
+        live = LiveService(ImportService(args.model, History(args.db)))
+        records = live.readings(args.sensor, live.clock() - dt.timedelta(hours=args.hours), limit=5000)
+    else:
+        from smart_house.environment.readings import inspect_readings
+        source = Path(args.input)
+        records, report = inspect_readings(source.read_text(encoding="utf-8-sig"), source.suffix)
+        if not report["valid"]:
+            raise ValueError(f"Readings file is invalid: {report['errors'][:5]}")
+    rows, weather = rows_from_records(records, weather_source(args))
+    report = calibrate(rows)
+    report["weather"] = weather
+    if weather["fixed_readings"]:
+        report["warnings"].append("Outdoor weather is the fixed 15 C assumption for some readings; "
+                                  "use --weather open-meteo for heat-loss and humidity estimates.")
+    write_json(args.output, report)
+    print(f"{report['pairs']} reading pairs; parameters: {report['params']}")
+    for warning in report["warnings"]:
+        print("Warning:", warning)
+
+
 def write_json(path, payload):
     import json
     from pathlib import Path
@@ -245,6 +287,7 @@ def cmd_evaluate(args):
     from smart_house.analytics.history import History
     if Path(args.output).exists():
         raise ValueError("Output already exists; choose a new --output path")
+    apply_physics(args)
     payload = ImportService(args.model, History(args.db)).evaluate(args.episodes, args.steps, args.seed)
     write_json(args.output, payload)
     print(f"Evaluation #{payload['id']} saved to: {args.output}")
@@ -267,6 +310,7 @@ def main(argv=None):
 
     # train
     p_train = sub.add_parser("train", help="Train a residual policy (DQN or rollout distillation)")
+    p_train.add_argument("--physics", help="Calibration report from `calibrate`; default simulator otherwise")
     p_train.add_argument("--method", choices=("dqn", "rollout"), default="dqn",
                          help="dqn: original warmup + DQN; rollout: rollout labels distilled into the network (residual_v2)")
     p_train.add_argument("--episodes", type=int, default=200, help="Number of training episodes")
@@ -333,6 +377,7 @@ def main(argv=None):
     p_validate.add_argument("--input", required=True)
 
     p_eval = sub.add_parser("evaluate", help="Compare DQN with deterministic control in paired simulation")
+    p_eval.add_argument("--physics", help="Calibration report from `calibrate`; default simulator otherwise")
     p_eval.add_argument("--episodes", type=int, default=5)
     p_eval.add_argument("--steps", type=int, default=144)
     p_eval.add_argument("--seed", type=int, default=42)
@@ -370,20 +415,31 @@ def main(argv=None):
     p_shadow.add_argument("--db", default=default_db)
     p_shadow.add_argument("--output", required=True)
 
+    p_cal = sub.add_parser("calibrate", help="Fit simulator parameters (heat loss, CO2, humidity) to readings")
+    p_cal.add_argument("--sensor", help="Live sensor id stored by the web/MQTT ingestion")
+    p_cal.add_argument("--hours", type=int, default=24 * 14, help="Live readings from the last N hours")
+    p_cal.add_argument("--input", help="Readings file (.json/.csv/.txt) instead of a live sensor")
+    p_cal.add_argument("--model", default=default_model)
+    p_cal.add_argument("--db", default=default_db)
+    p_cal.add_argument("--weather", choices=("fixed", "open-meteo"), default="open-meteo")
+    p_cal.add_argument("--lat", type=float, default=50.4501)
+    p_cal.add_argument("--lon", type=float, default=30.5234)
+    p_cal.add_argument("--output", required=True)
+
     p_demo = sub.add_parser("demo", help="Quick 5-episode demo with dashboard")
     p_demo.add_argument("--no-api", action="store_true")
     p_demo.add_argument("--no-ui", action="store_true")
 
     args = parser.parse_args(argv)
 
-    if args.command in {"import-data", "validate-data", "evaluate", "web", "mqtt", "shadow-report"}:
+    if args.command in {"import-data", "validate-data", "evaluate", "web", "mqtt", "shadow-report", "calibrate"}:
         try:
             if args.command == "web":
                 from smart_house.web.server import serve
                 serve(args.host, args.port, args.model, args.db, weather_source(args))
             else:
                 {"import-data": cmd_import_data, "validate-data": cmd_validate_data, "evaluate": cmd_evaluate,
-                 "mqtt": cmd_mqtt, "shadow-report": cmd_shadow_report}[args.command](args)
+                 "mqtt": cmd_mqtt, "shadow-report": cmd_shadow_report, "calibrate": cmd_calibrate}[args.command](args)
         except (OSError, ValueError, RuntimeError, KeyError) as exc:
             parser.exit(2, f"Command failed: {exc}\n")
     elif args.command == "train":

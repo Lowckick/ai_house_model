@@ -73,6 +73,36 @@ def device_power_kw(devices: DeviceState) -> float:
     return kw
 
 
+@dataclass(frozen=True)
+class PhysicsParams:
+    """Calibratable building parameters. None keeps the original simulator formula exactly.
+
+    heat_loss_per_h: share of the indoor/outdoor difference lost per hour (default ≈0.093).
+    co2_per_person_ppm_h: CO₂ added per occupant per hour.
+    co2_infiltration_per_h: natural air exchange pulling CO₂ toward 400 ppm (default 0: none).
+    humidity_exchange_per_h: share of the indoor/outdoor humidity difference exchanged per hour.
+    """
+    heat_loss_per_h: Optional[float] = None
+    co2_per_person_ppm_h: float = 20.0
+    co2_infiltration_per_h: float = 0.0
+    humidity_exchange_per_h: float = 0.05
+    source: str = 'default'
+
+    def validate(self):
+        checks = {'heat_loss_per_h': (0.0, 2.0), 'co2_per_person_ppm_h': (0.0, 5000.0),
+                  'co2_infiltration_per_h': (0.0, 10.0), 'humidity_exchange_per_h': (0.0, 5.0)}
+        for name, (low, high) in checks.items():
+            value = getattr(self, name)
+            if value is not None and not low <= value <= high:
+                raise ValueError(f'{name} must be from {low} to {high}')
+        return self
+
+
+def set_physics(params):
+    """Make ``params`` the default for every new simulator in this process (also a pool initializer)."""
+    IndoorPhysicsSimulator.PARAMS = (params or PhysicsParams()).validate()
+
+
 # ---------------------------------------------------------------------------
 # Room definition
 # ---------------------------------------------------------------------------
@@ -236,7 +266,11 @@ class IndoorPhysicsSimulator:
         "office": 500,
     }
 
-    def __init__(self, n_occupants: int = 2, seed=None, start_time=None):
+    # Process-wide default; training workers receive it through their pool initializer.
+    PARAMS = PhysicsParams()
+
+    def __init__(self, n_occupants: int = 2, seed=None, start_time=None, params=None):
+        self.params = params or type(self).PARAMS
         self._start_time = start_time
         self._occupancy_sim = OccupancySimulator(n_occupants)
         self._occupancy_sim._rng.seed(seed)
@@ -305,7 +339,10 @@ class IndoorPhysicsSimulator:
         avg_insulation = sum(r["insulation"] for r in ROOMS.values()) / len(ROOMS)
 
         # Heat exchange with outside
-        heat_loss = (outdoor_t - indoor_t) * (1.0 - avg_insulation) * 0.4 * dt
+        if self.params.heat_loss_per_h is None:
+            heat_loss = (outdoor_t - indoor_t) * (1.0 - avg_insulation) * 0.4 * dt
+        else:
+            heat_loss = (outdoor_t - indoor_t) * self.params.heat_loss_per_h * dt
 
         # HVAC contribution
         hvac_delta = 0.0
@@ -347,7 +384,7 @@ class IndoorPhysicsSimulator:
         outdoor_h = weather.humidity_pct
 
         # Exchange with outside
-        h += (outdoor_h - h) * 0.05 * dt
+        h += (outdoor_h - h) * self.params.humidity_exchange_per_h * dt
 
         # Occupant moisture (breathing, sweating)
         h += n_occ * 1.5 * dt
@@ -373,7 +410,9 @@ class IndoorPhysicsSimulator:
                              n_occ: int, activity: str):
         # CO2
         co2 = self.state.co2_ppm
-        co2 += n_occ * 20.0 * dt               # each person adds CO2
+        co2 += n_occ * self.params.co2_per_person_ppm_h * dt   # each person adds CO2
+        if self.params.co2_infiltration_per_h:
+            co2 -= (co2 - 400.0) * self.params.co2_infiltration_per_h * dt
         if activity == "exercising":
             co2 += n_occ * 40.0 * dt
         if devices.ventilation > 0:
