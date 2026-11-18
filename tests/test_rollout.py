@@ -84,7 +84,7 @@ class RolloutTests(unittest.TestCase):
         soft = soft_targets(values, 1.0).numpy()
         np.testing.assert_allclose(soft.sum(1), 1, rtol=1e-6)
         self.assertEqual(int(soft[0].argmax()), 1)
-        states, labels = collect_episode((0, 42, 'residual_v2', 12, 4, 1, None, 0.0))
+        states, labels = collect_episode((0, 42, 'residual_v2', 12, 4, 1, None, 0.0, 'comfort_safety_v2'))
         self.assertEqual(states.shape[0], labels.shape[0])
         agent = SmartHomeDQNAgent(action_mode='residual_v2', device='cpu')
         fit = distill(agent, states, labels, epochs=60, temperature=0)

@@ -204,12 +204,18 @@ class RewardFunction:
     """
 
     VERSION = "comfort_safety_v2"
+    VERSIONS = ("comfort_safety_v2", "comfort_safety_tou_v3")
     COMFORT_WEIGHT = 2.0
     ENERGY_WEIGHT = 0.15
     CLEAN_WEIGHT = 0.2
     SWITCH_PENALTY = 0.03
 
-    def __init__(self):
+    def __init__(self, version: str = "comfort_safety_v2"):
+        """``comfort_safety_tou_v3`` weights energy by the two-zone tariff (night cheaper)."""
+        if version not in self.VERSIONS:
+            raise ValueError(f"Unknown reward version: {version}")
+        self.VERSION = version
+        self.tariff = version == "comfort_safety_tou_v3"
         self._prev_devices: Optional[DeviceState] = None
 
     def compute(self, indoor: IndoorState, devices: DeviceState,
@@ -229,8 +235,13 @@ class RewardFunction:
                 or indoor.co2_ppm > 1500 or indoor.pm25_ugm3 > 55):
             reward -= 3.0
 
-        # Energy penalty
-        reward -= self.ENERGY_WEIGHT * indoor.power_consumption_kw
+        # Energy penalty; with a tariff, the same daily mean weight split into day/night prices.
+        energy_weight = self.ENERGY_WEIGHT
+        if self.tariff:
+            from smart_house.environment.tariff import interval_hour, price_weight
+            from smart_house.environment.indoor_state import IndoorPhysicsSimulator
+            energy_weight *= price_weight(interval_hour(indoor.timestamp, IndoorPhysicsSimulator.TIMESTEP_MINUTES))
+        reward -= energy_weight * indoor.power_consumption_kw
 
         # Cleanliness bonus/penalty
         clean = 100.0 - (indoor.dirt_level + indoor.dust_level) / 2.0
@@ -271,7 +282,8 @@ class SmartHomeDQNAgent:
     EPSILON_DECAY = 0.9995
 
     def __init__(self, state_dim: int = STATE_DIM, n_actions: int = N_ACTIONS,
-                 device: Optional[str] = None, action_mode="legacy", seed=42):
+                 device: Optional[str] = None, action_mode="legacy", seed=42,
+                 reward_version="comfort_safety_v2"):
         from smart_house.ml.controller import RESIDUAL_ACTIONS, RESIDUAL_MODES
         if action_mode != "legacy" and action_mode not in RESIDUAL_MODES:
             raise ValueError("Unknown action mode")
@@ -295,7 +307,7 @@ class SmartHomeDQNAgent:
         self.optimizer = optim.AdamW(self.policy_net.parameters(), lr=3e-4 if self.residual else self.LR)
         self.loss_fn = nn.SmoothL1Loss()
         self.replay = PrioritizedReplayBuffer(rng=self._rng)
-        self.reward_fn = RewardFunction()
+        self.reward_fn = RewardFunction(reward_version)
 
         self.epsilon = 0.2 if self.residual else self.EPSILON_START
         self.steps_done = 0
@@ -407,8 +419,12 @@ class SmartHomeDQNAgent:
         expected = len(RESIDUAL_ACTIONS) if mode in RESIDUAL_MODES else N_ACTIONS
         if (mode != "legacy" and mode not in RESIDUAL_MODES) or checkpoint.get("n_actions", expected) != expected:
             raise ValueError("Unsupported checkpoint action semantics")
-        if self.action_mode != mode or self.n_actions != expected:
-            self.__init__(device=str(self.device), action_mode=mode)
+        reward_version = checkpoint.get("reward_version", "comfort_safety_v2")
+        if reward_version not in RewardFunction.VERSIONS:
+            # Older checkpoints record retired reward versions; evaluate them with the current default.
+            reward_version = "comfort_safety_v2"
+        if self.action_mode != mode or self.n_actions != expected or self.reward_fn.VERSION != reward_version:
+            self.__init__(device=str(self.device), action_mode=mode, reward_version=reward_version)
         self.policy_net.load_state_dict(checkpoint["policy_state_dict"])
         self.target_net.load_state_dict(checkpoint["target_state_dict"])
         self.optimizer.load_state_dict(checkpoint["optimizer_state_dict"])

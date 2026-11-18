@@ -68,7 +68,7 @@ def correction_values(physics, devices, trace, t, mode, horizon=18, gamma=0.99, 
 
 
 def _policy(mode, weights, margin):
-    agent = SmartHomeDQNAgent(action_mode=mode, device='cpu')
+    agent = SmartHomeDQNAgent(action_mode=mode, device='cpu')  # reward is irrelevant for acting
     agent.policy_net.load_state_dict(weights)
     agent.policy_net.eval()
     agent.epsilon, agent.correction_margin = 0.0, margin
@@ -78,11 +78,11 @@ def _policy(mode, weights, margin):
 def collect_episode(job):
     """Label every state of one training episode. Behaviour: the rollout expert, or the network."""
     torch.set_num_threads(1)
-    index, seed, mode, steps, horizon, samples, weights, margin = job
+    index, seed, mode, steps, horizon, samples, weights, margin, reward_version = job
     agent = _policy(mode, weights, margin) if weights is not None else None
     scenario = make_scenario('train', index, seed)
     trace = scenario.weather_trace(steps)
-    physics, devices, rules, reward_fn = scenario.environment(), DeviceState(), RuleLayer(), RewardFunction()
+    physics, devices, rules, reward_fn = scenario.environment(), DeviceState(), RuleLayer(), RewardFunction(reward_version)
     states, values = [], []
     for t, weather in enumerate(trace):
         state = encode_state(physics.state, weather, devices)
@@ -144,7 +144,7 @@ def selection_key(result):
 
 def train_rollout(output_dir, *, seed=42, mode='residual_v2', rounds=3, episodes=48, steps=144,
                   horizon=18, samples=1, epochs=30, temperature=0.05, workers=None,
-                  validation_episodes=12, verbose=True):
+                  validation_episodes=12, reward_version='comfort_safety_v2', verbose=True):
     """Expert labels, then DAgger rounds; checkpoint and margin are chosen on validation only."""
     from smart_house.analytics.comparison import compare_controllers
     if mode not in RESIDUAL_MODES:
@@ -158,7 +158,7 @@ def train_rollout(output_dir, *, seed=42, mode='residual_v2', rounds=3, episodes
         raise ValueError('Rollout output directory must be new or empty')
     output.mkdir(parents=True, exist_ok=True)
     workers = workers or min(4, os.cpu_count() or 1)
-    agent = SmartHomeDQNAgent(action_mode=mode, seed=seed, device='cpu')
+    agent = SmartHomeDQNAgent(action_mode=mode, seed=seed, device='cpu', reward_version=reward_version)
     agent.epsilon = 0.0
     history = {'method': METHOD, 'seed': seed, 'action_mode': mode, 'reward_version': agent.reward_fn.VERSION,
                'rounds': rounds, 'episodes_per_round': episodes, 'steps_per_episode': steps, 'horizon': horizon,
@@ -170,7 +170,8 @@ def train_rollout(output_dir, *, seed=42, mode='residual_v2', rounds=3, episodes
         for round_index in range(rounds):
             started = time.monotonic()
             weights = None if round_index == 0 else {k: v.clone() for k, v in agent.policy_net.state_dict().items()}
-            jobs = [(round_index * episodes + i, seed, mode, steps, horizon, samples, weights, agent.correction_margin)
+            jobs = [(round_index * episodes + i, seed, mode, steps, horizon, samples, weights, agent.correction_margin,
+                     reward_version)
                     for i in range(episodes)]
             for states, values in (pool.map(collect_episode, jobs) if pool else map(collect_episode, jobs)):
                 all_states.append(states)

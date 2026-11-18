@@ -14,6 +14,8 @@ class RuleLayer:
     intelligent per-room adjustments that the agent doesn't control directly.
     """
 
+    VERSION = "rules_v2"       # v2: sleep cooling only above SLEEP_COOL_ABOVE (was 20 °C)
+
     # Safety thresholds
     MAX_CO2 = 1500.0           # ppm — force ventilation
     MIN_TEMP_SAFETY = 5.0      # °C — force heating
@@ -36,6 +38,7 @@ class RuleLayer:
         "office": 500,
     }
     SLEEP_LUX = 10              # near dark for sleeping
+    SLEEP_COOL_ABOVE = 23.0     # °C — gentle cooling during sleep only above this
 
     def apply(self, devices: DeviceState, indoor: IndoorState,
               weather: WeatherSnapshot) -> DeviceState:
@@ -182,6 +185,7 @@ class RuleLayer:
         if indoor.occupant_activity == "sleeping":
             # Quieter ventilation
             d.ventilation = min(d.ventilation, 1)
-            # Slightly cooler for sleep
-            if indoor.temperature_c > 20:
+            # Slightly cooler for sleep, but never cool a comfortable or cold room (rules_v2):
+            # the former threshold of 20 °C cooled winter bedrooms toward the heating threshold.
+            if indoor.temperature_c > self.SLEEP_COOL_ABOVE and d.hvac_mode in (0, 3):
                 d.hvac_mode = 3   # cooling low → cool down gently

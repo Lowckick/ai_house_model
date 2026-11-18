@@ -36,7 +36,7 @@ def cmd_train(args):
                                epochs=args.distill_epochs, temperature=args.temperature, workers=args.workers,
                                validation_episodes=args.validation_episodes or 12,
                                test_episodes=args.test_episodes or 20, test_seeds=args.test_seeds,
-                               reference_models=references)
+                               reference_models=references, reward_version=args.reward)
         return
     if len(references) > 1:
         raise ValueError('--method dqn accepts one --reference-model')
@@ -219,6 +219,8 @@ def main(argv=None):
     p_train.add_argument("--resume", help="Warm start from a residual checkpoint; replay buffer is regenerated")
     p_train.add_argument("--reference-model", action="append",
                          help="Checkpoint to evaluate on identical test scenarios (repeatable for rollout)")
+    p_train.add_argument("--reward", choices=("comfort_safety_v2", "comfort_safety_tou_v3"), default="comfort_safety_v2",
+                         help="rollout: reward; tou_v3 weights energy by the day/night tariff")
     p_train.add_argument("--rounds", type=int, default=3, help="rollout: labelling rounds (first expert, then DAgger)")
     p_train.add_argument("--rollout-episodes", type=int, default=48, help="rollout: new training episodes per round")
     p_train.add_argument("--horizon", type=int, default=18, help="rollout: lookahead steps of 10 minutes")

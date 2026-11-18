@@ -68,7 +68,7 @@ def run_experiment(output_dir, seeds=(42, 43, 44), episodes=200, *,
 def run_rollout_experiment(output_dir, seeds=(42, 43, 44), *, rounds=3, episodes=48, steps=144,
                            horizon=18, samples=1, epochs=30, temperature=0.05, workers=None,
                            validation_episodes=12, test_episodes=20, test_seeds=(20000, 31000),
-                           reference_models=()):
+                           reference_models=(), reward_version='comfort_safety_v2'):
     """Rollout distillation per training seed; winner fixed on validation before any test run."""
     from smart_house.ml.rollout import METHOD, selection_key as rollout_key, train_rollout
     if not seeds or len(seeds) > 10 or len(set(seeds)) != len(seeds):
@@ -85,20 +85,21 @@ def run_rollout_experiment(output_dir, seeds=(42, 43, 44), *, rounds=3, episodes
     for seed in seeds:
         history = train_rollout(root / f'seed-{seed}', seed=seed, rounds=rounds, episodes=episodes, steps=steps,
                                 horizon=horizon, samples=samples, epochs=epochs, temperature=temperature,
-                                workers=workers, validation_episodes=validation_episodes)
+                                workers=workers, validation_episodes=validation_episodes,
+                                reward_version=reward_version)
         runs.append({'seed': seed, 'best_round': history['best_round'], 'margin': history['best_margin'],
                      'checkpoint': str(root / f'seed-{seed}' / 'best.pt'), 'validation': history['best_validation']})
     winner = max(runs, key=lambda run: rollout_key(run['validation']))
     selected_path = root / 'best.pt'
     shutil.copyfile(winner['checkpoint'], selected_path)
-    report = {'protocol_version': 3, 'method': METHOD, 'selected_seed': winner['seed'],
+    report = {'protocol_version': 3, 'method': METHOD, 'reward_version': reward_version, 'selected_seed': winner['seed'],
               'selected_checkpoint': str(selected_path), 'selected_sha256': model_digest(selected_path),
               'selection': 'validation only: unsafe steps above the tuned baseline first, then highest reward',
               'test_seeds': list(test_seeds), 'runs': runs,
               'note': 'Simulation results. The network replaces the rollout planner at inference; '
                       'the residual policy includes its deterministic base controller and safety rules.'}
     (root / 'selection.json').write_text(json.dumps(report, indent=2, allow_nan=False), encoding='utf-8')
-    metrics = ('avg_comfort', 'energy_kwh', 'total_reward', 'unsafe_steps')
+    metrics = ('avg_comfort', 'energy_kwh', 'cost_uah', 'total_reward', 'unsafe_steps')
     for run in runs:
         agent = load_agent(run['checkpoint'])
         run['test'] = {str(s): compare_controllers(agent, test_episodes, 144, seed=s, split='test', include_tuned=True)
@@ -108,9 +109,12 @@ def run_rollout_experiment(output_dir, seeds=(42, 43, 44), *, rounds=3, episodes
                           'stddev': stdev(run['test'][str(s)]['summary']['model'][metric] for run in runs)
                           if len(runs) > 1 else None} for metric in metrics}
         for s in test_seeds}
+    from smart_house.ml.agent import RewardFunction
+    shared_reward = RewardFunction(reward_version)  # references are scored on the trained model's reward
     report['references'] = [{'model': str(model), 'sha256': model_digest(model),
                              'test': {str(s): compare_controllers(load_agent(model), test_episodes, 144, seed=s,
-                                                                  split='test', include_tuned=True)
+                                                                  split='test', include_tuned=True,
+                                                                  reward_fn=shared_reward)
                                       for s in test_seeds}}
                             for model in reference_models]
     (root / 'experiment.json').write_text(json.dumps(report, indent=2, allow_nan=False), encoding='utf-8')

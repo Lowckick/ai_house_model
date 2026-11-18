@@ -35,18 +35,20 @@ def assumed_weather(indoor):
                            0.0, 0.0, 6 <= indoor.timestamp.hour < 20, 'cloudy')
 
 
-def compare_controllers(agent, episodes=5, steps=144, seed=42, split='test', include_tuned=False):
+def compare_controllers(agent, episodes=5, steps=144, seed=42, split='test', include_tuned=False, reward_fn=None):
+    """``reward_fn`` overrides the agent's reward so models trained with different rewards share one scale."""
     epsilon, training = agent.epsilon, agent.policy_net.training
     agent.epsilon = 0.0
     agent.policy_net.eval()
     try:
-        return _compare(agent, episodes, steps, seed, split, include_tuned)
+        return _compare(agent, episodes, steps, seed, split, include_tuned, reward_fn or agent.reward_fn)
     finally:
         agent.epsilon = epsilon
         agent.policy_net.train(training)
 
 
-def _compare(agent, episodes, steps, seed, split, include_tuned=False):
+def _compare(agent, episodes, steps, seed, split, include_tuned, reward_fn):
+    from smart_house.environment.tariff import interval_hour, price_uah_per_kwh
     if type(episodes) is not int or not 1 <= episodes <= 20:
         raise ValueError('episodes must be an integer from 1 to 20')
     if type(steps) is not int or not 1 <= steps <= 144:
@@ -64,7 +66,7 @@ def _compare(agent, episodes, steps, seed, split, include_tuned=False):
         for name in names:
             physics = scenario.environment()
             devices = DeviceState()
-            comfort, rewards, powers, violations = [], [], [], 0
+            comfort, rewards, powers, violations, cost = [], [], [], 0, 0.0
             for weather in weather_trace:
                 state = physics.state
                 if name == 'model':
@@ -77,14 +79,16 @@ def _compare(agent, episodes, steps, seed, split, include_tuned=False):
                 state = physics.step(weather, chosen)
                 comfort.append(state.comfort_score)
                 powers.append(state.power_consumption_kw)
-                rewards.append(agent.reward_fn.compute(state, chosen, devices))
+                rewards.append(reward_fn.compute(state, chosen, devices))
+                cost += (state.power_consumption_kw * physics.TIMESTEP_MINUTES / 60 *
+                         price_uah_per_kwh(interval_hour(state.timestamp, physics.TIMESTEP_MINUTES)))
                 violations += int(state.temperature_c < 5 or state.temperature_c > 32 or state.co2_ppm > 1500 or state.pm25_ugm3 > 55)
                 devices = chosen
             outcomes[name] = {'avg_comfort': mean(comfort),
                               'energy_kwh': sum(powers) * physics.TIMESTEP_MINUTES / 60,
-                              'total_reward': sum(rewards), 'unsafe_steps': violations}
+                              'cost_uah': cost, 'total_reward': sum(rewards), 'unsafe_steps': violations}
         trials.append({'scenario': scenario.describe(), **outcomes})
-    metrics = ('avg_comfort', 'energy_kwh', 'total_reward', 'unsafe_steps')
+    metrics = ('avg_comfort', 'energy_kwh', 'cost_uah', 'total_reward', 'unsafe_steps')
     summary = {name: {metric: mean(t[name][metric] for t in trials) for metric in metrics}
                for name in names}
     delta = {metric: summary['model'][metric] - summary['deterministic'][metric] for metric in metrics}
@@ -99,7 +103,8 @@ def _compare(agent, episodes, steps, seed, split, include_tuned=False):
                                    'ventilation 1/2/3 above 800/1000/1300 ppm; purifier 1/2/3 above 12/20/35 ug/m3; '
                                    'humidity 40-60%; clean above 15% dirt. Same shared rules.'}
     return {**extra, 'protocol_version': 2, 'split': split, 'action_mode': agent.action_mode,
-            'reward_version': agent.reward_fn.VERSION, 'episodes': episodes, 'steps_per_episode': steps, 'seed': seed,
+            'reward_version': reward_fn.VERSION,
+            'tariff': 'day 4.32 UAH/kWh, night (23-07) x0.5', 'rules_version': RuleLayer.VERSION, 'episodes': episodes, 'steps_per_episode': steps, 'seed': seed,
             'summary': summary, 'delta_model_minus_deterministic': delta,
             'paired_delta_stddev': variability, 'trials': trials,
             'unsafe_thresholds': {'temperature_c': [5, 32], 'co2_ppm_max': 1500, 'pm25_ugm3_max': 55},
