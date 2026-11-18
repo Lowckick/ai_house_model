@@ -66,11 +66,18 @@ kursova/
 
 ## Setup
 
+Python 3.11+ (перевірено на 3.13). Для роботи на CPU спершу поставте легку
+CPU-збірку PyTorch (≈200 МБ замість кількох ГБ зі CUDA), потім решту:
+
 ```bash
+pip install torch --index-url https://download.pytorch.org/whl/cpu
 pip install -r requirements.txt
 ```
 
-> For GPU acceleration, install the appropriate PyTorch build from https://pytorch.org
+`constraints.txt` фіксує версії, з якими востаннє проходили всі тести:
+`pip install -r requirements.txt -c constraints.txt`. Для GPU встановіть
+відповідну збірку з https://pytorch.org. Тести: `python -m unittest discover -s tests`
+(їх також запускає GitHub Actions на кожен push).
 
 ---
 
@@ -204,7 +211,7 @@ python main.py import-data --input /path/to/readings.csv --output /tmp/my-result
 ```
 
 У підготовленому хмарному середовищі замість `python` використовуйте
-`/workspace/.venvs/ai-house/bin/python`. Типова модель — `data/model.pt`;
+`/workspace/.venvs/ai-house/bin/python`. Типова модель — `data/models/rollout-v2.pt`;
 використовуйте лише довірені PyTorch checkpoint-файли.
 Вихідний файл має бути новим: наявні файли не перезаписуються.
 Помилки формату/значень завершують команду з кодом 2; часткового імпорту

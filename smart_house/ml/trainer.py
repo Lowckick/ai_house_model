@@ -150,7 +150,9 @@ class Trainer:
         total_reward = comfort_sum = power_sum = 0.0
         unsafe = 0
         ep_start = time.monotonic()
-        with sqlite3.connect(self._db_path) as conn:
+        from contextlib import closing
+        # sqlite3's own context manager commits but does not close; closing() does both with `conn`.
+        with closing(sqlite3.connect(self._db_path)) as conn, conn:
             for step in range(self.STEPS_PER_EPISODE):
                 weather = weather_trace[step]
                 state = encode_state(indoor, weather, devices)

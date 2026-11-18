@@ -1,5 +1,6 @@
 import datetime as dt
 import json
+from contextlib import closing
 import tempfile
 import unittest
 from pathlib import Path
@@ -121,7 +122,7 @@ class TrainingTests(unittest.TestCase):
                 expected_weather = scenario.weather_trace(65)[1]
                 first_rl = list(trainer.agent.replay._buf)[64]
                 self.assertAlmostEqual(float(first_rl.next_state[0]), expected_weather.temperature_c / 40, places=5)
-                with sqlite3.connect(trainer._db_path) as db:
+                with closing(sqlite3.connect(trainer._db_path)) as db:
                     stamps = [dt.datetime.fromisoformat(row[0]) for row in db.execute('SELECT timestamp FROM episodes ORDER BY id')]
                 self.assertEqual(len(stamps), 64)
                 self.assertTrue(all(b - a == dt.timedelta(minutes=10) for a, b in zip(stamps, stamps[1:])))

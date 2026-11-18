@@ -198,7 +198,8 @@ def main(argv=None):
         epilog=__doc__,
     )
     sub = parser.add_subparsers(dest="command")
-    default_model = os.path.join(os.path.dirname(__file__), "data", "model.pt")
+    # Best flat-price model; pass --model data/models/rollout-v3-tou.pt for a two-zone tariff.
+    default_model = os.path.join(os.path.dirname(__file__), "data", "models", "rollout-v2.pt")
 
     # train
     p_train = sub.add_parser("train", help="Train a residual policy (DQN or rollout distillation)")
