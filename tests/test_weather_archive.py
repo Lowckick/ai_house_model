@@ -92,6 +92,21 @@ class ArchiveWeatherTests(unittest.TestCase):
             fixed = ImportService(MODEL, history).analyze_text('w.csv', text)
             self.assertEqual((fixed['weather']['mode'], fixed['readings'][0]['weather']['temperature_c']), ('fixed', 15.0))
 
+    def test_history_migrates_databases_without_weather_column(self):
+        import sqlite3
+        from contextlib import closing
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'old.db'
+            with closing(sqlite3.connect(path)) as db, db:
+                db.execute('CREATE TABLE imports (id INTEGER PRIMARY KEY, created_at TEXT NOT NULL, '
+                           'filename TEXT NOT NULL, file_sha256 TEXT NOT NULL, model_sha256 TEXT NOT NULL, '
+                           'count INTEGER NOT NULL, validation TEXT NOT NULL)')
+                db.execute("INSERT INTO imports VALUES (1, 't', 'old.csv', 'a', 'b', 0, '{}')")
+            history = History(path)
+            self.assertNotIn('weather', history.get_import(1))
+            ident = history.save_import('new.csv', 'c', 'd', {}, [], {'mode': 'fixed'})
+            self.assertEqual(history.get_import(ident)['weather'], {'mode': 'fixed'})
+
 
 if __name__ == '__main__':
     unittest.main()

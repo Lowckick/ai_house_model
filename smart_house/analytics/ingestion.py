@@ -68,10 +68,9 @@ class ImportService:
     def import_text(self, filename, text):
         result = self.analyze_text(filename, text)
         ident = self.history.save_import(Path(filename).name, hashlib.sha256(text.encode('utf-8')).hexdigest(),
-                                         result['model_sha256'], result['validation'], result['readings'])
-        payload = self.history.get_import(ident)
-        payload['weather'] = result['weather']  # per-reading sources are stored with each measurement
-        return payload
+                                         result['model_sha256'], result['validation'], result['readings'],
+                                         result['weather'])
+        return self.history.get_import(ident)
 
     def evaluate(self, episodes=5, steps=144, seed=42):
         with self._lock:

@@ -30,6 +30,9 @@ class History:
                     id INTEGER PRIMARY KEY, created_at TEXT NOT NULL, payload TEXT NOT NULL
                 );
             ''')
+            columns = {row[1] for row in db.execute('PRAGMA table_info(imports)')}
+            if 'weather' not in columns:  # databases created before weather lookups
+                db.execute('ALTER TABLE imports ADD COLUMN weather TEXT')
 
     @contextmanager
     def connect(self):
@@ -42,11 +45,12 @@ class History:
         finally:
             db.close()
 
-    def save_import(self, filename, file_digest, model_digest, report, results):
+    def save_import(self, filename, file_digest, model_digest, report, results, weather=None):
         with self.connect() as db:
-            cur = db.execute('INSERT INTO imports(created_at,filename,file_sha256,model_sha256,count,validation) VALUES(?,?,?,?,?,?)',
+            cur = db.execute('INSERT INTO imports(created_at,filename,file_sha256,model_sha256,count,validation,weather) '
+                             'VALUES(?,?,?,?,?,?,?)',
                              (dt.datetime.now(dt.timezone.utc).isoformat(), filename, file_digest,
-                              model_digest, len(results), encode(report)))
+                              model_digest, len(results), encode(report), None if weather is None else encode(weather)))
             ident = cur.lastrowid
             db.executemany('INSERT INTO measurements VALUES(?,?,?,?)',
                            [(ident, i, r['timestamp'], encode(r)) for i, r in enumerate(results, 1)])
@@ -64,6 +68,9 @@ class History:
                 raise KeyError('Import not found')
             payload = dict(row)
             payload['validation'] = json.loads(payload.pop('validation'))
+            weather = payload.pop('weather', None)
+            if weather is not None:
+                payload['weather'] = json.loads(weather)
             payload['readings'] = [json.loads(row[0]) for row in db.execute(
                 'SELECT payload FROM measurements WHERE import_id=? ORDER BY position', (ident,))]
             return payload
