@@ -14,8 +14,8 @@ LOGGER = logging.getLogger(__name__)
 MAX_BODY = MAX_FILE_BYTES * 2  # JSON string escaping can enlarge uploaded UTF-8 text
 
 
-def make_server(host, port, model, db):
-    service = ImportService(model, History(db))
+def make_server(host, port, model, db, weather=None):
+    service = ImportService(model, History(db), weather)
     lab = ModelLab(model, service.history)
     page = Path(__file__).with_name('index.html').read_bytes()
 
@@ -123,10 +123,10 @@ def make_server(host, port, model, db):
     return server
 
 
-def serve(host, port, model, db):
+def serve(host, port, model, db, weather=None):
     import torch
     torch.set_num_threads(2)
-    server = make_server(host, port, model, db)
+    server = make_server(host, port, model, db, weather)
     print(f'Smart House web listening on {host}:{server.server_port}. Stop with Ctrl-C.', flush=True)
     try:
         server.serve_forever()

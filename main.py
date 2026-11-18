@@ -129,6 +129,16 @@ def cmd_screenshots(args):
         print(f"  {path}")
 
 
+def weather_source(args):
+    """ArchiveWeather when --weather open-meteo is requested, otherwise None (fixed assumption)."""
+    if getattr(args, "weather", "fixed") != "open-meteo":
+        return None
+    from pathlib import Path
+    from smart_house.environment.weather_archive import ArchiveWeather
+    cache = Path(__file__).resolve().parent / "data" / "user" / "weather-cache.json"
+    return ArchiveWeather(args.lat, args.lon, cache_path=cache)
+
+
 def cmd_import_data(args):
     import json
     from pathlib import Path
@@ -144,12 +154,16 @@ def cmd_import_data(args):
     if source.stat().st_size > MAX_FILE_BYTES:
         raise ValueError("File exceeds 5 MiB")
     try:
-        payload = ImportService(args.model, History(args.db)).import_text(
+        payload = ImportService(args.model, History(args.db), weather_source(args)).import_text(
             source.name, source.read_text(encoding="utf-8-sig"))
     except ValidationError as exc:
         raise ValueError(json.dumps(exc.report, ensure_ascii=False)) from exc
     write_json(target, payload)
     print(f"Imported {payload['count']} readings (history #{payload['id']}). Recommendations saved to: {target}")
+    weather = payload['weather']
+    if weather['mode'] == 'open-meteo':
+        print(f"Weather: Open-Meteo for {weather['open_meteo_readings']} readings, "
+              f"fixed assumption for {weather['fixed_readings']}" + (f"; errors: {weather['errors']}" if weather['errors'] else ""))
 
 
 def write_json(path, payload):
@@ -258,6 +272,10 @@ def main(argv=None):
     p_import = sub.add_parser("import-data", help="Validate, store indoor readings and generate recommendations")
     p_import.add_argument("--input", required=True, help="UTF-8 JSON, CSV or TXT file")
     p_import.add_argument("--output", required=True, help="New JSON output file (never overwritten)")
+    p_import.add_argument("--weather", choices=("fixed", "open-meteo"), default="fixed",
+                         help="Outdoor weather for readings: fixed 15 C assumption or Open-Meteo history (cached)")
+    p_import.add_argument("--lat", type=float, default=50.4501, help="Latitude for --weather open-meteo (default Kyiv)")
+    p_import.add_argument("--lon", type=float, default=30.5234, help="Longitude for --weather open-meteo")
     p_import.add_argument("--model", default=default_model, help="Trusted trained PyTorch checkpoint")
     p_import.add_argument("--db", default=default_db, help="Separate measurement history SQLite database")
 
@@ -275,6 +293,10 @@ def main(argv=None):
     p_web = sub.add_parser("web", help="Start browser upload, history and evaluation interface")
     p_web.add_argument("--host", default="127.0.0.1")
     p_web.add_argument("--port", type=int, default=8000)
+    p_web.add_argument("--weather", choices=("fixed", "open-meteo"), default="fixed",
+                         help="Outdoor weather for readings: fixed 15 C assumption or Open-Meteo history (cached)")
+    p_web.add_argument("--lat", type=float, default=50.4501, help="Latitude for --weather open-meteo (default Kyiv)")
+    p_web.add_argument("--lon", type=float, default=30.5234, help="Longitude for --weather open-meteo")
     p_web.add_argument("--model", default=default_model)
     p_web.add_argument("--db", default=default_db)
 
@@ -289,7 +311,7 @@ def main(argv=None):
         try:
             if args.command == "web":
                 from smart_house.web.server import serve
-                serve(args.host, args.port, args.model, args.db)
+                serve(args.host, args.port, args.model, args.db, weather_source(args))
             else:
                 {"import-data": cmd_import_data, "validate-data": cmd_validate_data,
                  "evaluate": cmd_evaluate}[args.command](args)
