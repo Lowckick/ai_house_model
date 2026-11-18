@@ -42,12 +42,16 @@ def _reseed(physics, seed):
 
 
 def correction_values(physics, devices, trace, t, mode, horizon=18, gamma=0.99, samples=1,
-                      noise_seed=0, reward_fn=None, rules=None):
-    """Mean discounted return of every residual correction at step ``t``; ``physics`` is not changed."""
+                      noise_seed=0, reward_fn=None, rules=None, hold=1):
+    """Mean discounted return of every residual correction at step ``t``; ``physics`` is not changed.
+
+    The correction is applied for ``hold`` steps (a sustained plan such as pre-heating), then the
+    base controller continues until the horizon.
+    """
     if mode not in RESIDUAL_MODES:
         raise ValueError('Unknown residual action mode')
-    if horizon < 1 or samples < 1:
-        raise ValueError('horizon and samples must be positive')
+    if horizon < 1 or samples < 1 or not 1 <= hold <= horizon:
+        raise ValueError('horizon and samples must be positive; hold from 1 to horizon')
     reward_fn = reward_fn or RewardFunction()
     rules = rules or RuleLayer()
     values = np.zeros(len(RESIDUAL_ACTIONS), dtype=np.float64)
@@ -58,7 +62,7 @@ def correction_values(physics, devices, trace, t, mode, horizon=18, gamma=0.99, 
             _reseed(sim, seed)
             for k in range(min(horizon, len(trace) - t)):
                 weather = trace[t + k]
-                chosen = rules.apply(residual_devices(action if k == 0 else 0, sim.state, weather, mode),
+                chosen = rules.apply(residual_devices(action if k < hold else 0, sim.state, weather, mode),
                                      sim.state, weather)
                 state = sim.step(weather, chosen)
                 total += gamma ** k * reward_fn.compute(state, chosen, previous)
