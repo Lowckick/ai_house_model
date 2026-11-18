@@ -60,6 +60,13 @@ class CalibrationTests(unittest.TestCase):
         self.assertIsNone(report['params']['heat_loss_per_h'])
         self.assertTrue(any(w.startswith('heat_loss_per_h') for w in report['warnings']))
         self.assertTrue(any('co2_per_person' in w for w in report['warnings']))
+        assumed = recorded_week(TRUE)
+        for row in assumed:  # outdoor values from the fixed assumption: CO2 only
+            row['outdoor_source'] = 'fixed'
+        report = calibrate(assumed)
+        self.assertIsNone(report['params']['heat_loss_per_h'])
+        self.assertEqual(report['params']['humidity_exchange_per_h'], 0.05)
+        self.assertGreater(report['params']['co2_infiltration_per_h'], 0.4)
 
     def test_params_file_drives_evaluation_and_defaults_stay_exact(self):
         with tempfile.TemporaryDirectory() as tmp:

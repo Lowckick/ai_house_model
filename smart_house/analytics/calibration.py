@@ -23,6 +23,7 @@ from smart_house.environment.indoor_state import ROOMS, PhysicsParams
 
 MIN_STEP_MIN, MAX_STEP_MIN = 2.0, 30.0
 MIN_PAIRS = 24
+MIN_REAL_WEATHER_SHARE = 0.9   # outdoor-driven fits need real outdoor weather
 DEFAULT_HEAT_LOSS = (1.0 - sum(r['insulation'] for r in ROOMS.values()) / len(ROOMS)) * 0.4
 
 
@@ -82,11 +83,17 @@ def calibrate(rows):
         report['params'] = asdict(PhysicsParams(source='default (insufficient data)'))
         return report
 
+    sources = [a.get('outdoor_source', 'open-meteo') for a, _, _ in pairs]
+    outdoor_known = sources.count('open-meteo') / len(sources) >= MIN_REAL_WEATHER_SHARE
+    report['real_weather_share'] = sources.count('open-meteo') / len(sources)
+
     # Temperature
     x = np.array([a['outdoor_temperature_c'] - a['temperature_c'] for a, _, _ in pairs])
     y = np.array([(b['temperature_c'] - a['temperature_c']) / h for a, h, b in pairs])
     coef, se, r2, n, dropped = _robust_fit(np.column_stack([x, np.ones_like(x)]), y)
     ok, why = _accept('heat_loss_per_h', coef[0], se[0], float(np.std(x)), 2.0, 0.005, 1.0)
+    if ok and not outdoor_known:
+        ok, why = False, 'heat_loss_per_h: real outdoor weather is missing for over 10 % of readings'
     report['fits']['temperature'] = {'slope': coef[0], 'slope_se': se[0], 'intercept_c_per_h': coef[1], 'r2': r2,
                                      'used': n, 'outliers': dropped, 'accepted': ok,
                                      'simulator_default': DEFAULT_HEAT_LOSS}
@@ -129,6 +136,8 @@ def calibrate(rows):
     y = np.array([(b['humidity_pct'] - a['humidity_pct']) / h for a, h, b in pairs])
     coef, se, r2, n, dropped = _robust_fit(np.column_stack([x, np.ones_like(x)]), y)
     ok, why = _accept('humidity_exchange_per_h', coef[0], se[0], float(np.std(x)), 3.0, 0.005, 3.0)
+    if ok and not outdoor_known:
+        ok, why = False, 'humidity_exchange_per_h: real outdoor weather is missing for over 10 % of readings'
     report['fits']['humidity'] = {'slope': coef[0], 'slope_se': se[0], 'intercept_pct_per_h': coef[1], 'r2': r2,
                                   'used': n, 'outliers': dropped, 'accepted': ok, 'simulator_default': 0.05}
     if ok:
@@ -162,6 +171,7 @@ def rows_from_records(records, weather):
             from smart_house.environment.weather_archive import fixed_weather
             snapshot, source = fixed_weather(row['time']), 'fixed'
         row['outdoor_temperature_c'], row['outdoor_humidity_pct'] = snapshot.temperature_c, snapshot.humidity_pct
+        row['outdoor_source'] = source
         sources.append(source)
     return rows, {'open_meteo_readings': sources.count('open-meteo'), 'fixed_readings': sources.count('fixed')}
 
