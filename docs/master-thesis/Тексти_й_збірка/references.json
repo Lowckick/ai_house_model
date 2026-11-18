@@ -20,5 +20,7 @@
 ["SQLite. Atomic Commit In SQLite: технічна документація.","https://www.sqlite.org/atomiccommit.html"],
 ["NumPy Developers. NumPy documentation: офіційна документація масивів та числових операцій.","https://numpy.org/doc/"],
 ["Open-Meteo. Weather Forecast API: офіційна документація.","https://open-meteo.com/en/docs"],
-["PyTorch Contributors. Reproducibility: рекомендації щодо відтворюваності.","https://docs.pytorch.org/docs/stable/notes/randomness.html"]
+["PyTorch Contributors. Reproducibility: рекомендації щодо відтворюваності.","https://docs.pytorch.org/docs/stable/notes/randomness.html"],
+["Bertsekas D. P. Rollout, Policy Iteration, and Distributed Reinforcement Learning. Belmont : Athena Scientific, 2020. 376 p.","http://www.athenasc.com/rolloutbook_athena.html"],
+["Ross S., Gordon G. J., Bagnell J. A. A Reduction of Imitation Learning and Structured Prediction to No-Regret Online Learning. Proceedings of the 14th International Conference on Artificial Intelligence and Statistics (AISTATS). 2011. P. 627–635.","https://proceedings.mlr.press/v15/ross11a.html"]
 ]

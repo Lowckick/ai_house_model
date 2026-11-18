@@ -43,7 +43,7 @@ class CalibrationTests(unittest.TestCase):
         self.assertAlmostEqual(params['heat_loss_per_h'], 0.2, delta=0.04)
         self.assertAlmostEqual(params['co2_infiltration_per_h'], 0.5, delta=0.1)
         self.assertAlmostEqual(params['co2_per_person_ppm_h'], 250.0, delta=50.0)
-        # Occupant moisture correlates with the driving difference: expect ~20 % low estimates.
+        # Occupant moisture correlates with the driving difference: expect estimates 20-30 % low.
         self.assertAlmostEqual(params['humidity_exchange_per_h'], 0.3, delta=0.1)
         self.assertTrue(all(fit['accepted'] for fit in (report['fits']['temperature'], report['fits']['humidity'])))
         json.dumps(report, allow_nan=False)
