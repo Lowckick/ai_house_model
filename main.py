@@ -166,6 +166,56 @@ def cmd_import_data(args):
               f"fixed assumption for {weather['fixed_readings']}" + (f"; errors: {weather['errors']}" if weather['errors'] else ""))
 
 
+def cmd_mqtt(args):
+    """Subscribe to sensor topics and log shadow-mode recommendations for every message."""
+    import json
+    from smart_house.analytics.history import History
+    from smart_house.analytics.ingestion import ImportService, ValidationError
+    from smart_house.analytics.live import LiveService, handle_mqtt_message
+    from smart_house.web.server import notifier_from_env
+    try:
+        import paho.mqtt.client as mqtt
+    except ImportError as exc:
+        raise ValueError("MQTT needs the optional package: pip install paho-mqtt") from exc
+    service = LiveService(ImportService(args.model, History(args.db), weather_source(args)), notifier_from_env())
+    client = (mqtt.Client(mqtt.CallbackAPIVersion.VERSION2) if hasattr(mqtt, "CallbackAPIVersion") else mqtt.Client())
+    if args.username:
+        client.username_pw_set(args.username, os.environ.get("MQTT_PASSWORD"))
+    if args.tls:
+        client.tls_set()
+
+    def on_connect(client, userdata, *rest):
+        client.subscribe(args.topic)
+        print(f"Subscribed to {args.topic} on {args.broker}:{args.port}", flush=True)
+
+    def on_message(client, userdata, message):
+        try:
+            record = handle_mqtt_message(service, message.topic, message.payload, args.topic)
+            alerts = "; ".join(a["message"] for a in record["new_alerts"])
+            print(f"{record['sensor_id']} {record['timestamp']}: action {record['action_index']}"
+                  + (f" | {alerts}" if alerts else ""), flush=True)
+        except ValidationError as exc:
+            print(f"Rejected {message.topic}: {json.dumps(exc.report['errors'], ensure_ascii=False)}", flush=True)
+        except (ValueError, UnicodeError) as exc:
+            print(f"Rejected {message.topic}: {exc}", flush=True)
+
+    client.on_connect, client.on_message = on_connect, on_message
+    client.connect(args.broker, args.port)
+    try:
+        client.loop_forever()
+    except KeyboardInterrupt:
+        pass
+
+
+def cmd_shadow_report(args):
+    from smart_house.analytics.history import History
+    from smart_house.analytics.ingestion import ImportService
+    from smart_house.analytics.live import LiveService
+    report = LiveService(ImportService(args.model, History(args.db))).report(args.sensor, args.hours)
+    write_json(args.output, report)
+    print(f"{report['readings']} readings of {args.sensor} in the last {args.hours} h; report: {args.output}")
+
+
 def write_json(path, payload):
     import json
     from pathlib import Path
@@ -301,20 +351,39 @@ def main(argv=None):
     p_web.add_argument("--db", default=default_db)
 
     # demo
+    p_mqtt = sub.add_parser("mqtt", help="Subscribe to MQTT sensor topics (shadow mode, needs paho-mqtt)")
+    p_mqtt.add_argument("--broker", required=True)
+    p_mqtt.add_argument("--port", type=int, default=1883)
+    p_mqtt.add_argument("--topic", default="home/+/climate", help="One '+' level is the sensor id")
+    p_mqtt.add_argument("--username", help="Password is read from MQTT_PASSWORD")
+    p_mqtt.add_argument("--tls", action="store_true")
+    p_mqtt.add_argument("--model", default=default_model)
+    p_mqtt.add_argument("--db", default=default_db)
+    p_mqtt.add_argument("--weather", choices=("fixed", "open-meteo"), default="fixed")
+    p_mqtt.add_argument("--lat", type=float, default=50.4501)
+    p_mqtt.add_argument("--lon", type=float, default=30.5234)
+
+    p_shadow = sub.add_parser("shadow-report", help="Summarise live readings and logged recommendations")
+    p_shadow.add_argument("--sensor", required=True)
+    p_shadow.add_argument("--hours", type=int, default=24)
+    p_shadow.add_argument("--model", default=default_model)
+    p_shadow.add_argument("--db", default=default_db)
+    p_shadow.add_argument("--output", required=True)
+
     p_demo = sub.add_parser("demo", help="Quick 5-episode demo with dashboard")
     p_demo.add_argument("--no-api", action="store_true")
     p_demo.add_argument("--no-ui", action="store_true")
 
     args = parser.parse_args(argv)
 
-    if args.command in {"import-data", "validate-data", "evaluate", "web"}:
+    if args.command in {"import-data", "validate-data", "evaluate", "web", "mqtt", "shadow-report"}:
         try:
             if args.command == "web":
                 from smart_house.web.server import serve
                 serve(args.host, args.port, args.model, args.db, weather_source(args))
             else:
-                {"import-data": cmd_import_data, "validate-data": cmd_validate_data,
-                 "evaluate": cmd_evaluate}[args.command](args)
+                {"import-data": cmd_import_data, "validate-data": cmd_validate_data, "evaluate": cmd_evaluate,
+                 "mqtt": cmd_mqtt, "shadow-report": cmd_shadow_report}[args.command](args)
         except (OSError, ValueError, RuntimeError, KeyError) as exc:
             parser.exit(2, f"Command failed: {exc}\n")
     elif args.command == "train":

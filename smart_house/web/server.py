@@ -1,22 +1,26 @@
 """Small local HTTP application; no third-party web dependency required."""
+import hmac
 import json
 import logging
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import urlsplit
+from urllib.parse import parse_qs, urlsplit
 
 from smart_house.analytics.history import History, encode
 from smart_house.analytics.ingestion import ImportService, ValidationError
 from smart_house.analytics.lab import ModelLab, QueueFull
+from smart_house.analytics.live import LiveService
 from smart_house.environment.readings import MAX_FILE_BYTES, inspect_readings
 
 LOGGER = logging.getLogger(__name__)
 MAX_BODY = MAX_FILE_BYTES * 2  # JSON string escaping can enlarge uploaded UTF-8 text
 
 
-def make_server(host, port, model, db, weather=None):
+def make_server(host, port, model, db, weather=None, live_token=None, notifier=None):
+    """``live_token``: when set, sensors must send ``Authorization: Bearer <token>`` to POST /api/live/<id>."""
     service = ImportService(model, History(db), weather)
     lab = ModelLab(model, service.history)
+    live = LiveService(service, notifier)
     page = Path(__file__).with_name('index.html').read_bytes()
 
     class Handler(BaseHTTPRequestHandler):
@@ -36,8 +40,21 @@ def make_server(host, port, model, db, weather=None):
             self.wfile.write(data)
 
         def do_GET(self):
-            route = urlsplit(self.path).path
+            parts = urlsplit(self.path)
+            route, query = parts.path, parse_qs(parts.query)
             try:
+                if route == '/api/live':
+                    return self.respond(200, {'sensors': live.sensors()})
+                if route.startswith('/api/live/'):
+                    sensor, _, tail = route[len('/api/live/'):].partition('/')
+                    hours = int(query.get('hours', ['24'])[0])
+                    if tail == 'report':
+                        return self.respond(200, live.report(sensor, hours))
+                    if tail == '':
+                        import datetime as dt
+                        since = live.clock() - dt.timedelta(hours=hours)
+                        return self.respond(200, {'sensor_id': sensor, 'readings': live.readings(
+                            sensor, since, int(query.get('limit', ['500'])[0]))})
                 if route == '/':
                     return self.respond(200, page, 'text/html; charset=utf-8')
                 if route == '/api/lab/models':
@@ -58,6 +75,8 @@ def make_server(host, port, model, db, weather=None):
                 self.respond(404, {'error': 'Not found'})
             except KeyError:
                 self.respond(404, {'error': 'Not found'})
+            except ValueError as exc:
+                self.respond(400, {'error': str(exc)})
             except Exception:
                 LOGGER.exception('History request failed')
                 self.respond(500, {'error': 'Не вдалося прочитати історію. Перевірте журнал сервера.'})
@@ -77,6 +96,11 @@ def make_server(host, port, model, db, weather=None):
                 if not isinstance(body, dict):
                     raise ValueError('Expected a JSON object')
                 route = urlsplit(self.path).path
+                if route.startswith('/api/live/'):
+                    if live_token and not hmac.compare_digest(self.headers.get('Authorization', ''),
+                                                              'Bearer ' + live_token):
+                        return self.respond(401, {'error': 'Missing or invalid sensor token'})
+                    return self.respond(201, live.ingest(route[len('/api/live/'):], body))
                 if route == '/api/lab/predict':
                     return self.respond(200, lab.predict(body))
                 if route == '/api/lab/jobs':
@@ -123,10 +147,28 @@ def make_server(host, port, model, db, weather=None):
     return server
 
 
+def notifier_from_env():
+    """Telegram alerts when TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID are set; otherwise none."""
+    import os
+    from smart_house.analytics.live import telegram_notifier
+    token, chat = os.environ.get('TELEGRAM_BOT_TOKEN'), os.environ.get('TELEGRAM_CHAT_ID')
+    return telegram_notifier(token, chat) if token and chat else None
+
+
 def serve(host, port, model, db, weather=None):
+    import ipaddress
+    import os
     import torch
     torch.set_num_threads(2)
-    server = make_server(host, port, model, db, weather)
+    token = os.environ.get('SMART_HOUSE_LIVE_TOKEN') or None
+    try:
+        loopback = host == 'localhost' or ipaddress.ip_address(host).is_loopback
+    except ValueError:
+        loopback = False
+    if not loopback and not token:
+        raise ValueError('Listening beyond this computer lets sensors on the network write readings: '
+                         'set SMART_HOUSE_LIVE_TOKEN first (sensors send "Authorization: Bearer <token>")')
+    server = make_server(host, port, model, db, weather, token, notifier_from_env())
     print(f'Smart House web listening on {host}:{server.server_port}. Stop with Ctrl-C.', flush=True)
     try:
         server.serve_forever()

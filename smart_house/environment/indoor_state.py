@@ -58,6 +58,21 @@ class DeviceState:
         return v
 
 
+def device_power_kw(devices: DeviceState) -> float:
+    """Electrical power of a device configuration, including a 0.3 kW always-on baseline."""
+    kw = 0.0
+    hvac_watts = [0, 800, 1800, 900, 2000]
+    kw += hvac_watts[devices.hvac_mode] / 1000.0
+    kw += sum(devices.lights.values()) * 5.0 / 1000.0     # 50W max per room lamp
+    kw += devices.air_purifier * 50.0 / 1000.0
+    kw += devices.humidifier_mode * 30.0 / 1000.0
+    kw += devices.ventilation * 80.0 / 1000.0
+    if devices.cleaner_bot == 1:
+        kw += 0.04   # ~40W robot vacuum
+    kw += 0.3       # baseline always-on (fridge, router, etc.)
+    return kw
+
+
 # ---------------------------------------------------------------------------
 # Room definition
 # ---------------------------------------------------------------------------
@@ -435,16 +450,7 @@ class IndoorPhysicsSimulator:
             self.state.last_cleaned = self.state.timestamp if self._start_time else datetime.datetime.now()
 
     def _update_power(self, devices: DeviceState):
-        kw = 0.0
-        hvac_watts = [0, 800, 1800, 900, 2000]
-        kw += hvac_watts[devices.hvac_mode] / 1000.0
-        kw += sum(devices.lights.values()) * 5.0 / 1000.0     # 50W max per room lamp
-        kw += devices.air_purifier * 50.0 / 1000.0
-        kw += devices.humidifier_mode * 30.0 / 1000.0
-        kw += devices.ventilation * 80.0 / 1000.0
-        if devices.cleaner_bot == 1:
-            kw += 0.04   # ~40W robot vacuum
-        kw += 0.3       # baseline always-on (fridge, router, etc.)
+        kw = device_power_kw(devices)
         self.state.power_consumption_kw = round(kw, 3)
         self.state.energy_today_kwh = round(
             self.state.energy_today_kwh + kw * (self.TIMESTEP_MINUTES / 60.0), 4)

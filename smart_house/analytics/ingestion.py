@@ -12,6 +12,41 @@ from smart_house.environment.indoor_state import DeviceState
 from smart_house.ml.rule_layer import RuleLayer
 
 
+def top_corrections(agent, state, count=3):
+    """The network's most preferred residual corrections with softmax confidence (residual modes only)."""
+    import torch
+    from smart_house.ml.controller import RESIDUAL_ACTIONS
+    if not agent.residual:
+        return []
+    with torch.no_grad():
+        logits = agent.policy_net(torch.as_tensor(state, dtype=torch.float32).unsqueeze(0))[0]
+    probabilities = torch.softmax(logits, dim=0)
+    ranked = torch.argsort(probabilities, descending=True)[:count].tolist()
+    return [{'action_index': index, 'field': RESIDUAL_ACTIONS[index][0], 'value': RESIDUAL_ACTIONS[index][1],
+             'confidence': round(float(probabilities[index]), 4)} for index in ranked]
+
+
+def recommend(agent, indoor, weather, weather_source='fixed', devices=None):
+    """One reading -> model action, devices after rules, baseline and explanations (JSON-safe)."""
+    devices = devices or DeviceState()
+    state = encode_state(indoor, weather, devices)
+    action = agent.select_action(state)
+    raw = agent.decode_action(action, devices, indoor, weather)
+    recommended, changes = RuleLayer().apply_with_explanations(raw, indoor, weather)
+    return {'timestamp': indoor.timestamp.isoformat(), 'indoor': asdict(indoor),
+            'weather': asdict(weather), 'weather_source': weather_source, 'action_index': action,
+            'action_mode': agent.action_mode, 'top_corrections': top_corrections(agent, state),
+            'model_devices': asdict(raw), 'recommended_devices': asdict(recommended),
+            'deterministic_devices': asdict(deterministic_devices(indoor, weather)),
+            'explanations': [
+                {'source': 'model', 'reason': 'Обрано дію з найбільшою оцінкою моделі. ' +
+                 ('Політика коригує детермінований контролер; дія 0 залишає його рішення; '
+                  'top_corrections показує впевненість мережі. ' if agent.residual else '') +
+                 'Причини нейронної оцінки не інтерпретуються; зміни правил наведено окремо.'},
+                *(teacher_explanations(indoor, weather, agent.action_mode) if agent.residual else []),
+                *changes]}
+
+
 class ValidationError(ValueError):
     def __init__(self, report):
         self.report = report
@@ -42,19 +77,7 @@ class ImportService:
             failed_requests = self.weather.prefetch([s.timestamp for s in states]) if self.weather else 0
             for indoor in states:
                 weather, weather_source = self.weather.get(indoor.timestamp) if self.weather else (assumed_weather(indoor), 'fixed')
-                action = agent.select_action(encode_state(indoor, weather, DeviceState()))
-                raw = agent.decode_action(action, DeviceState(), indoor, weather)
-                recommended, changes = RuleLayer().apply_with_explanations(raw, indoor, weather)
-                results.append({'timestamp': indoor.timestamp.isoformat(), 'indoor': asdict(indoor),
-                                'weather': asdict(weather), 'weather_source': weather_source, 'action_index': action, 'action_mode': agent.action_mode,
-                                'model_devices': asdict(raw), 'recommended_devices': asdict(recommended),
-                                'deterministic_devices': asdict(deterministic_devices(indoor, weather)),
-                                'explanations': [
-                                    {'source': 'model', 'reason': 'Обрано дію з найбільшою Q-оцінкою моделі (epsilon=0). ' +
-                                     ('Політика коригує детермінований контролер; дія 0 залишає його рішення. ' if agent.residual else '') +
-                                     'Причини нейронної оцінки не інтерпретуються; зміни правил наведено окремо.'},
-                                    *(teacher_explanations(indoor, weather, agent.action_mode) if agent.residual else []),
-                                    *changes]})
+                results.append(recommend(agent, indoor, weather, weather_source))
             digest = self._digest
         sources = [r['weather_source'] for r in results]
         weather_summary = {'mode': 'open-meteo' if self.weather else 'fixed',
