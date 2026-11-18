@@ -7,27 +7,39 @@ A large-scale Python reinforcement learning system that adaptively controls a si
 ## Architecture
 
 ```
-kursova/
-├── main.py                         ← Entry point (CLI)
-├── requirements.txt
-├── data/                           ← SQLite DB + saved models + reports
-│   ├── training.db
-│   ├── model.pt
-│   ├── reports/
-│   └── screenshots/
-└── smart_house/
-    ├── environment/
-    │   ├── weather.py              ← Open-Meteo API + synthetic generator
-    │   └── indoor_state.py         ← Physics simulation (temp, humidity, air, dirt, light, power)
-    ├── ml/
-    │   ├── agent.py                ← Dueling Double DQN (PyTorch)
-    │   ├── rule_layer.py           ← Safety + smart rule overrides
-    │   └── trainer.py              ← Training loop + SQLite logging
-    ├── dashboard/
-    │   └── display.py              ← Rich live terminal dashboard
-    └── analytics/
-        ├── reporter.py             ← Matplotlib training report generator
-        └── screenshots.py          ← PNG dashboard snapshot generator
+ai_house_model/
+├── main.py                      ← CLI: train, evaluate, web, import-data, mqtt, shadow-report, calibrate, …
+├── requirements.txt, constraints.txt, Dockerfile, docker-compose.yml
+├── data/
+│   ├── models/                  ← rollout-v2.pt (default), rollout-v3-tou.pt, improved-v2.pt + evaluation reports
+│   ├── model.pt                 ← legacy 1920-action DQN (kept for comparison)
+│   └── user/                    ← local, not in Git: histories, live readings, weather cache, experiments
+├── smart_house/
+│   ├── environment/
+│   │   ├── indoor_state.py      ← building physics (calibratable PhysicsParams), devices, power model
+│   │   ├── scenarios.py         ← disjoint train/validation/test seasonal scenarios
+│   │   ├── weather.py           ← Open-Meteo forecast + synthetic generator
+│   │   ├── weather_archive.py   ← hourly historical weather for recorded readings (cached)
+│   │   ├── tariff.py            ← two-zone electricity tariff
+│   │   └── readings.py          ← validation of sensor readings (JSON/CSV/TXT)
+│   ├── ml/
+│   │   ├── agent.py             ← network, rewards (comfort_safety_v2, tou_v3), checkpoints
+│   │   ├── controller.py        ← deterministic base controllers and the 19 residual corrections
+│   │   ├── rollout.py           ← rollout labels + DAgger distillation (recommended training)
+│   │   ├── trainer.py           ← original warmup + DQN training
+│   │   ├── experiments.py       ← multi-seed experiments, validation-only selection, test reports
+│   │   └── rule_layer.py        ← lighting, blinds, security, sleep and final safety rules
+│   ├── analytics/
+│   │   ├── comparison.py        ← paired closed-loop evaluation (comfort, energy, cost, safety)
+│   │   ├── ingestion.py         ← recommendations for readings, explanations, model confidence
+│   │   ├── live.py              ← live sensors, alerts, Telegram, shadow-mode report
+│   │   ├── calibration.py       ← fit simulator parameters to recorded readings
+│   │   ├── history.py, lab.py   ← SQLite history and the model lab
+│   │   └── reporter.py, screenshots.py
+│   ├── web/                     ← local web panel (no third-party web framework)
+│   └── dashboard/               ← Rich terminal dashboard
+├── tests/                       ← unittest suite (CI: .github/workflows/tests.yml)
+└── docs/                        ← training, results, sensors, calibration, Docker, model lab, thesis
 ```
 
 ---
@@ -36,31 +48,26 @@ kursova/
 
 | Feature | Description |
 |---|---|
-| **Adaptive HVAC** | Learns to heat/cool based on indoor temp, outdoor weather, occupancy |
-| **Smart Lighting** | Auto-adjusts per-room brightness based on natural light + occupancy |
-| **Blind/Curtain Control** | Opens/closes blinds for solar gain, privacy, or glare reduction |
-| **Cleaner Robot** | Launches automatically when dirt exceeds threshold; pauses during sleep |
-| **Air Purifier** | Ramps up when PM2.5 or VOC levels are elevated |
-| **Humidifier** | Maintains 40–60% RH; dehumidifies in rain/high-humidity weather |
-| **Ventilation** | Increases when CO2 > 1000 ppm or occupants are exercising |
-| **Security System** | Arms/disarms based on occupancy patterns |
-| **Energy Tracking** | Monitors kW per device, daily kWh total |
-| **Occupancy Simulation** | Realistic daily patterns (sleeping, cooking, working, away) |
-| **Weather Integration** | Live data from [Open-Meteo](https://open-meteo.com) (no API key needed) |
-| **Synthetic Fallback** | Seasonal + diurnal physics-based weather generator if API is unavailable |
-| **Live Dashboard** | Full-screen Rich terminal UI updating 4×/second |
-| **Training Analytics** | Matplotlib charts saved as PNG reports |
-| **Report Screenshots** | Generates PNG dashboard snapshots for coursework/demo materials |
+| **Hybrid control** | A network chooses one of 19 corrections to a deterministic controller; safety rules always apply last |
+| **Rollout training** | Corrections scored on a simulator copy and distilled into the network (DAgger, validation-only selection) |
+| **Two-zone tariff** | Optional tariff-aware reward; every evaluation reports electricity cost in UAH |
+| **Live sensors** | HTTP (ESP32, Home Assistant) or MQTT readings in shadow mode: recommend and log, never switch devices |
+| **Alerts** | CO₂, PM2.5, temperature and humidity alerts in the browser and optionally Telegram |
+| **Real weather** | Hourly Open-Meteo history for imported and live readings, cached for offline reuse |
+| **Calibration** | Heat loss, CO₂ generation/infiltration and humidity exchange estimated from your readings |
+| **Web panel** | Sensors, uploads, history, explanations with model confidence, paired evaluation, model lab |
+| **Simulation** | Seasonal weather, occupancy, temperature, humidity, air quality, dirt, light and power |
+| **Terminal tools** | Rich live dashboard, Matplotlib training reports, dashboard screenshots |
 
 ---
 
 ## ML Model
 
-- **Algorithm**: Dueling Double DQN (PyTorch)
-- **State**: 50+ features — indoor conditions, weather, devices, time-of-day encodings
-- **Action**: New `residual_v1` models choose 19 corrections to a deterministic controller; legacy checkpoints retain 1920 composite actions
-- **Reward**: `comfort_safety_v2`: comfort and cleanliness, explicit discomfort/safety penalties, energy and switching costs
-- **Enhancements**: Layer normalization, experience replay (50k), epsilon-greedy decay, periodic target network updates
+- **Network**: dueling MLP with layer normalization (PyTorch), 54 input features: indoor conditions, weather, devices, time of day
+- **Actions**: `residual_v2` — 19 corrections to a staged-threshold controller, with corrections that would weaken it outside comfort ignored; `residual_v1` and legacy 1920-action checkpoints still load
+- **Training**: `--method rollout` (recommended) or the original `--method dqn`
+- **Rewards**: `comfort_safety_v2`; `comfort_safety_tou_v3` weights energy by the day/night tariff
+- **Results**: [docs/training-results.md](docs/training-results.md)
 
 ---
 
