@@ -81,20 +81,27 @@ class PhysicsParams:
     co2_per_person_ppm_h: CO₂ added per occupant per hour.
     co2_infiltration_per_h: natural air exchange pulling CO₂ toward 400 ppm (default 0: none).
     humidity_exchange_per_h: share of the indoor/outdoor humidity difference exchanged per hour.
+    hvac_lag_h: time constant of heating/cooling emitters (floor heating, radiators); None = instant.
+    occupancy: 'random' (presence redrawn every step) or 'schedule' (persistent daily routines).
     """
     heat_loss_per_h: Optional[float] = None
     co2_per_person_ppm_h: float = 20.0
     co2_infiltration_per_h: float = 0.0
     humidity_exchange_per_h: float = 0.05
+    hvac_lag_h: Optional[float] = None
+    occupancy: str = 'random'
     source: str = 'default'
 
     def validate(self):
         checks = {'heat_loss_per_h': (0.0, 2.0), 'co2_per_person_ppm_h': (0.0, 5000.0),
                   'co2_infiltration_per_h': (0.0, 10.0), 'humidity_exchange_per_h': (0.0, 5.0)}
+        checks['hvac_lag_h'] = (0.05, 12.0)
         for name, (low, high) in checks.items():
             value = getattr(self, name)
             if value is not None and not low <= value <= high:
                 raise ValueError(f'{name} must be from {low} to {high}')
+        if self.occupancy not in ('random', 'schedule'):
+            raise ValueError("occupancy must be 'random' or 'schedule'")
         return self
 
 
@@ -198,8 +205,8 @@ class OccupancySimulator:
         self._n = n_occupants
         self._rng = random.Random()
 
-    def update(self, hour: int) -> tuple:
-        """Returns (occupancy_dict, total, activity)."""
+    def update(self, hour: int, minute: int = 0) -> tuple:
+        """Returns (occupancy_dict, total, activity); ``minute`` is used by schedule occupancy only."""
         # Probability of being home by hour
         home_prob = self._home_probability(hour)
         total = sum(1 for _ in range(self._n) if self._rng.random() < home_prob)
@@ -241,6 +248,47 @@ class OccupancySimulator:
         return 0.95
 
 
+class ScheduleOccupancy(OccupancySimulator):
+    """Persistent daily routines: each person stays home (25 %) or is away about 08:00–18:00.
+
+    Presence follows the same plan for the whole day, so it is predictable from the time of
+    day, unlike the default model that redraws presence every step.
+    """
+
+    def __init__(self, n_occupants: int = 2):
+        super().__init__(n_occupants)
+        self.plan, self._last_hour = None, None
+
+    def _new_day(self):
+        self.plan = [None if self._rng.random() < 0.25 else
+                     (self._rng.gauss(8.0, 0.7), self._rng.gauss(18.0, 1.2)) for _ in range(self._n)]
+
+    def update(self, hour: int, minute: int = 0) -> tuple:
+        if self.plan is None or hour < self._last_hour:
+            self._new_day()
+        self._last_hour = hour
+        now = hour + minute / 60.0
+        total = sum(1 for p in self.plan if p is None or not p[0] <= now < p[1])
+        occupancy = {r: False for r in ROOMS}
+        activity = "idle"
+        if total:
+            if now >= 22 or now < 7:
+                occupancy["bedroom"], activity = True, "sleeping"
+            elif 7 <= now < 8 or 18 <= now < 20:
+                occupancy["kitchen"] = occupancy["living_room"] = True
+                activity = "cooking"
+            else:
+                occupancy["living_room"] = True
+        return occupancy, total, activity
+
+    def reseed_future(self, rng, now):
+        """For lookahead copies: redraw return times of people who are away, hiding the realised plan."""
+        if self.plan is None:
+            return
+        self.plan = [p if p is None or not p[0] <= now < p[1] else (p[0], max(now + 0.25, rng.gauss(18.0, 1.2)))
+                     for p in self.plan]
+
+
 # ---------------------------------------------------------------------------
 # Indoor physics simulator
 # ---------------------------------------------------------------------------
@@ -272,8 +320,10 @@ class IndoorPhysicsSimulator:
     def __init__(self, n_occupants: int = 2, seed=None, start_time=None, params=None):
         self.params = params or type(self).PARAMS
         self._start_time = start_time
-        self._occupancy_sim = OccupancySimulator(n_occupants)
+        occupancy_model = ScheduleOccupancy if self.params.occupancy == 'schedule' else OccupancySimulator
+        self._occupancy_sim = occupancy_model(n_occupants)
         self._occupancy_sim._rng.seed(seed)
+        self._emitter = 0.0   # lagged heating/cooling rate, °C/h (hvac_lag_h only)
         self._rng = random.Random(seed)
         self.state = IndoorState()
         self._step = 0
@@ -290,6 +340,7 @@ class IndoorPhysicsSimulator:
         )
         self._step = 0
         self._cleaning_progress = 0.0
+        self._emitter = 0.0
         return self.state
 
     def step(self, weather: WeatherSnapshot, devices: DeviceState) -> IndoorState:
@@ -297,7 +348,8 @@ class IndoorPhysicsSimulator:
         h = self.state.timestamp.hour if self._start_time else datetime.datetime.now().hour
 
         # -- Occupancy --
-        occ, n_occ, activity = self._occupancy_sim.update(h)
+        minute = self.state.timestamp.minute if self._start_time else 0
+        occ, n_occ, activity = self._occupancy_sim.update(h, minute)
         self.state.occupancy = occ
         self.state.total_occupants = n_occ
         self.state.occupant_activity = activity
@@ -350,6 +402,11 @@ class IndoorPhysicsSimulator:
         elif devices.hvac_mode == 2:  hvac_delta = +3.5 * dt
         elif devices.hvac_mode == 3:  hvac_delta = -1.5 * dt
         elif devices.hvac_mode == 4:  hvac_delta = -3.5 * dt
+        if self.params.hvac_lag_h is not None:
+            # Emitters approach the commanded rate with a first-order lag instead of instantly.
+            target = hvac_delta / dt
+            self._emitter += (target - self._emitter) * min(1.0, dt / self.params.hvac_lag_h)
+            hvac_delta = self._emitter * dt
 
         # Occupant body heat (~80W per person → ~0.05°C/h per person in avg house)
         body_heat = n_occ * 0.08 * dt

@@ -18,7 +18,13 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 
 def apply_physics(args):
-    """--physics calibration.json replaces the simulator's default building parameters."""
+    """--physics calibration.json or --house NAME replaces the simulator's default building parameters."""
+    if getattr(args, "physics", None) and getattr(args, "house", None):
+        raise ValueError("Use either --physics or --house")
+    if getattr(args, "house", None):
+        from smart_house.environment.houses import house
+        from smart_house.environment.indoor_state import set_physics
+        set_physics(house(args.house))
     if getattr(args, "physics", None):
         from smart_house.analytics.calibration import load_params
         from smart_house.environment.indoor_state import set_physics
@@ -258,6 +264,17 @@ def cmd_calibrate(args):
         print("Warning:", warning)
 
 
+def cmd_adapt(args):
+    """Adaptation study across house variants (see smart_house/ml/adaptation.py); resumable per house."""
+    import torch
+    from smart_house.ml.adaptation import run_adaptation
+    torch.set_num_threads(args.threads)
+    run_adaptation(args.output_dir, args.houses, seeds=args.seeds, rounds=args.rounds, episodes=args.rollout_episodes,
+                   workers=args.workers, validation_episodes=args.validation_episodes,
+                   test_episodes=args.test_episodes, test_seeds=args.test_seeds)
+    print(f"Report: {args.output_dir}/adaptation.json")
+
+
 def write_json(path, payload):
     import json
     from pathlib import Path
@@ -311,6 +328,7 @@ def main(argv=None):
     # train
     p_train = sub.add_parser("train", help="Train a residual policy (DQN or rollout distillation)")
     p_train.add_argument("--physics", help="Calibration report from `calibrate`; default simulator otherwise")
+    p_train.add_argument("--house", help="Named building variant from smart_house/environment/houses.py")
     p_train.add_argument("--method", choices=("dqn", "rollout"), default="dqn",
                          help="dqn: original warmup + DQN; rollout: rollout labels distilled into the network (residual_v2)")
     p_train.add_argument("--episodes", type=int, default=200, help="Number of training episodes")
@@ -378,6 +396,7 @@ def main(argv=None):
 
     p_eval = sub.add_parser("evaluate", help="Compare DQN with deterministic control in paired simulation")
     p_eval.add_argument("--physics", help="Calibration report from `calibrate`; default simulator otherwise")
+    p_eval.add_argument("--house", help="Named building variant from smart_house/environment/houses.py")
     p_eval.add_argument("--episodes", type=int, default=5)
     p_eval.add_argument("--steps", type=int, default=144)
     p_eval.add_argument("--seed", type=int, default=42)
@@ -426,20 +445,34 @@ def main(argv=None):
     p_cal.add_argument("--lon", type=float, default=30.5234)
     p_cal.add_argument("--output", required=True)
 
+    p_adapt = sub.add_parser("adapt", help="Compare fixed/retuned rules and default/retrained networks across houses")
+    p_adapt.add_argument("--houses", nargs="+", default=["default", "realistic_co2", "poor_insulation",
+                                                          "lagged_schedule", "combined"])
+    p_adapt.add_argument("--seeds", type=int, nargs="+", default=[42, 43])
+    p_adapt.add_argument("--rounds", type=int, default=3)
+    p_adapt.add_argument("--rollout-episodes", type=int, default=48)
+    p_adapt.add_argument("--workers", type=int)
+    p_adapt.add_argument("--validation-episodes", type=int, default=12)
+    p_adapt.add_argument("--test-episodes", type=int, default=20)
+    p_adapt.add_argument("--test-seeds", type=int, nargs="+", default=[20000, 31000])
+    p_adapt.add_argument("--threads", type=int, default=2)
+    p_adapt.add_argument("--output-dir", required=True, help="Reusing the directory resumes finished houses")
+
     p_demo = sub.add_parser("demo", help="Quick 5-episode demo with dashboard")
     p_demo.add_argument("--no-api", action="store_true")
     p_demo.add_argument("--no-ui", action="store_true")
 
     args = parser.parse_args(argv)
 
-    if args.command in {"import-data", "validate-data", "evaluate", "web", "mqtt", "shadow-report", "calibrate"}:
+    if args.command in {"import-data", "validate-data", "evaluate", "web", "mqtt", "shadow-report", "calibrate", "adapt"}:
         try:
             if args.command == "web":
                 from smart_house.web.server import serve
                 serve(args.host, args.port, args.model, args.db, weather_source(args))
             else:
                 {"import-data": cmd_import_data, "validate-data": cmd_validate_data, "evaluate": cmd_evaluate,
-                 "mqtt": cmd_mqtt, "shadow-report": cmd_shadow_report, "calibrate": cmd_calibrate}[args.command](args)
+                 "mqtt": cmd_mqtt, "shadow-report": cmd_shadow_report, "calibrate": cmd_calibrate,
+                 "adapt": cmd_adapt}[args.command](args)
         except (OSError, ValueError, RuntimeError, KeyError) as exc:
             parser.exit(2, f"Command failed: {exc}\n")
     elif args.command == "train":

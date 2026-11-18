@@ -39,6 +39,10 @@ def _noise_seed(*parts):
 def _reseed(physics, seed):
     physics._rng.seed(seed)
     physics._occupancy_sim._rng.seed(seed + 1)
+    if hasattr(physics._occupancy_sim, 'reseed_future'):   # schedule occupancy: no knowledge of today's plan
+        import random
+        now = physics.state.timestamp
+        physics._occupancy_sim.reseed_future(random.Random(seed + 2), now.hour + now.minute / 60.0)
 
 
 def correction_values(physics, devices, trace, t, mode, horizon=18, gamma=0.99, samples=1,

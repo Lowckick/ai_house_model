@@ -180,7 +180,8 @@ def load_params(path):
     """PhysicsParams from a calibration report (or a bare params object) written by ``calibrate``."""
     data = json.loads(Path(path).read_text(encoding='utf-8'))
     data = data.get('params', data)
-    allowed = {'heat_loss_per_h', 'co2_per_person_ppm_h', 'co2_infiltration_per_h', 'humidity_exchange_per_h', 'source'}
+    allowed = {'heat_loss_per_h', 'co2_per_person_ppm_h', 'co2_infiltration_per_h', 'humidity_exchange_per_h',
+               'hvac_lag_h', 'occupancy', 'source'}
     unknown = set(data) - allowed
     if unknown:
         raise ValueError('Unknown physics parameters: ' + ', '.join(sorted(unknown)))
