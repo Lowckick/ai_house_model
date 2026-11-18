@@ -1,0 +1,13 @@
+.git
+.github
+**/__pycache__
+*.pyc
+data/user
+data/training.db
+data/screenshots
+data/reports
+docs
+tests
+Dockerfile
+docker-compose.yml
+.env

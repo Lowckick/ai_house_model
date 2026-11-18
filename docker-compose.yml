@@ -1,0 +1,35 @@
+# docker compose up -d   → web panel on http://127.0.0.1:8000, sensors POST to http://<this-host>:8000/api/live/<room>
+# Put secrets in .env next to this file (not committed): SMART_HOUSE_LIVE_TOKEN, optional TELEGRAM_*, MQTT_PASSWORD.
+services:
+  web:
+    build: .
+    image: smart-house:latest
+    restart: unless-stopped
+    ports:
+      - "${SMART_HOUSE_BIND:-127.0.0.1}:8000:8000"
+    environment:
+      SMART_HOUSE_LIVE_TOKEN: ${SMART_HOUSE_LIVE_TOKEN:?Set SMART_HOUSE_LIVE_TOKEN in .env}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+    command: ["web", "--host", "0.0.0.0", "--port", "8000", "--weather", "open-meteo",
+              "--lat", "${SMART_HOUSE_LAT:-50.4501}", "--lon", "${SMART_HOUSE_LON:-30.5234}"]
+    volumes:
+      - house-data:/app/data/user
+
+  # Optional MQTT subscriber: docker compose --profile mqtt up -d
+  mqtt:
+    image: smart-house:latest
+    profiles: ["mqtt"]
+    restart: unless-stopped
+    depends_on: [web]
+    environment:
+      MQTT_PASSWORD: ${MQTT_PASSWORD:-}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+    command: ["mqtt", "--broker", "${MQTT_BROKER:?Set MQTT_BROKER in .env}", "--topic", "${MQTT_TOPIC:-home/+/climate}",
+              "--weather", "open-meteo", "--lat", "${SMART_HOUSE_LAT:-50.4501}", "--lon", "${SMART_HOUSE_LON:-30.5234}"]
+    volumes:
+      - house-data:/app/data/user
+
+volumes:
+  house-data:

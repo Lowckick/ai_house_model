@@ -81,6 +81,19 @@ pip install -r requirements.txt
 
 ---
 
+## Швидкий старт
+
+```bash
+pip install torch --index-url https://download.pytorch.org/whl/cpu && pip install -r requirements.txt
+python main.py web --weather open-meteo          # http://127.0.0.1:8000
+```
+
+або `docker compose up -d --build` ([docs/docker.md](docs/docker.md)). Датчики
+(ESP32, Home Assistant, MQTT) підключаються в тіньовому режимі: модель радить і
+записує, не керуючи пристроями ([docs/sensors.md](docs/sensors.md)). З їхніх
+записів можна відкалібрувати симулятор під свій будинок
+([docs/calibration.md](docs/calibration.md)).
+
 ## Найкраща модель: `rollout-v2`
 
 ```bash
