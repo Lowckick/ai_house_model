@@ -68,7 +68,7 @@ def run_experiment(output_dir, seeds=(42, 43, 44), episodes=200, *,
 def run_rollout_experiment(output_dir, seeds=(42, 43, 44), *, rounds=3, episodes=48, steps=144,
                            horizon=18, samples=1, epochs=30, temperature=0.05, workers=None,
                            validation_episodes=12, test_episodes=20, test_seeds=(20000, 31000),
-                           reference_models=(), reward_version='comfort_safety_v2'):
+                           reference_models=(), reward_version='comfort_safety_v2', hold=1):
     """Rollout distillation per training seed; winner fixed on validation before any test run."""
     from smart_house.ml.rollout import METHOD, selection_key as rollout_key, train_rollout
     if not seeds or len(seeds) > 10 or len(set(seeds)) != len(seeds):
@@ -86,13 +86,13 @@ def run_rollout_experiment(output_dir, seeds=(42, 43, 44), *, rounds=3, episodes
         history = train_rollout(root / f'seed-{seed}', seed=seed, rounds=rounds, episodes=episodes, steps=steps,
                                 horizon=horizon, samples=samples, epochs=epochs, temperature=temperature,
                                 workers=workers, validation_episodes=validation_episodes,
-                                reward_version=reward_version)
+                                reward_version=reward_version, hold=hold)
         runs.append({'seed': seed, 'best_round': history['best_round'], 'margin': history['best_margin'],
                      'checkpoint': str(root / f'seed-{seed}' / 'best.pt'), 'validation': history['best_validation']})
     winner = max(runs, key=lambda run: rollout_key(run['validation']))
     selected_path = root / 'best.pt'
     shutil.copyfile(winner['checkpoint'], selected_path)
-    report = {'protocol_version': 3, 'method': METHOD, 'reward_version': reward_version, 'selected_seed': winner['seed'],
+    report = {'protocol_version': 3, 'method': METHOD, 'reward_version': reward_version, 'hold': hold, 'selected_seed': winner['seed'],
               'selected_checkpoint': str(selected_path), 'selected_sha256': model_digest(selected_path),
               'selection': 'validation only: unsafe steps above the tuned baseline first, then highest reward',
               'test_seeds': list(test_seeds), 'runs': runs,

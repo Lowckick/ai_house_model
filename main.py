@@ -36,7 +36,7 @@ def cmd_train(args):
                                epochs=args.distill_epochs, temperature=args.temperature, workers=args.workers,
                                validation_episodes=args.validation_episodes or 12,
                                test_episodes=args.test_episodes or 20, test_seeds=args.test_seeds,
-                               reference_models=references, reward_version=args.reward)
+                               reference_models=references, reward_version=args.reward, hold=args.hold)
         return
     if len(references) > 1:
         raise ValueError('--method dqn accepts one --reference-model')
@@ -224,6 +224,8 @@ def main(argv=None):
     p_train.add_argument("--rounds", type=int, default=3, help="rollout: labelling rounds (first expert, then DAgger)")
     p_train.add_argument("--rollout-episodes", type=int, default=48, help="rollout: new training episodes per round")
     p_train.add_argument("--horizon", type=int, default=18, help="rollout: lookahead steps of 10 minutes")
+    p_train.add_argument("--hold", type=int, default=1,
+                         help="rollout: steps a correction is held in the lookahead (6 = 1 hour, e.g. pre-heating)")
     p_train.add_argument("--rollout-samples", type=int, default=1, help="rollout: noise samples per label")
     p_train.add_argument("--distill-epochs", type=int, default=30)
     p_train.add_argument("--temperature", type=float, default=0.05, help="rollout: soft-label temperature, 0 = hard labels")

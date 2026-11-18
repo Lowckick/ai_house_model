@@ -82,7 +82,8 @@ def _policy(mode, weights, margin):
 def collect_episode(job):
     """Label every state of one training episode. Behaviour: the rollout expert, or the network."""
     torch.set_num_threads(1)
-    index, seed, mode, steps, horizon, samples, weights, margin, reward_version = job
+    index, seed, mode, steps, horizon, samples, weights, margin, reward_version, *rest = job
+    hold = rest[0] if rest else 1
     agent = _policy(mode, weights, margin) if weights is not None else None
     scenario = make_scenario('train', index, seed)
     trace = scenario.weather_trace(steps)
@@ -91,7 +92,8 @@ def collect_episode(job):
     for t, weather in enumerate(trace):
         state = encode_state(physics.state, weather, devices)
         scores = correction_values(physics, devices, trace, t, mode, horizon, samples=samples,
-                                   noise_seed=_noise_seed(scenario.seed, t), reward_fn=reward_fn, rules=rules)
+                                   noise_seed=_noise_seed(scenario.seed, t), reward_fn=reward_fn, rules=rules,
+                                   hold=min(hold, horizon))
         states.append(state)
         values.append(scores)
         action = int(scores.argmax()) if agent is None else agent.select_action(state)
@@ -148,13 +150,15 @@ def selection_key(result):
 
 def train_rollout(output_dir, *, seed=42, mode='residual_v2', rounds=3, episodes=48, steps=144,
                   horizon=18, samples=1, epochs=30, temperature=0.05, workers=None,
-                  validation_episodes=12, reward_version='comfort_safety_v2', verbose=True):
+                  validation_episodes=12, reward_version='comfort_safety_v2', hold=1, verbose=True):
     """Expert labels, then DAgger rounds; checkpoint and margin are chosen on validation only."""
     from smart_house.analytics.comparison import compare_controllers
     if mode not in RESIDUAL_MODES:
         raise ValueError('mode must be a residual action mode')
     if rounds < 1 or episodes < 1 or not 1 <= steps <= 144 or horizon < 1 or samples < 1 or epochs < 1:
         raise ValueError('rounds, episodes, horizon, samples and epochs must be positive; steps 1-144')
+    if not 1 <= hold <= horizon:
+        raise ValueError('hold must be from 1 to horizon')
     if not 1 <= validation_episodes <= 20:
         raise ValueError('validation episodes must be from 1 to 20')
     output = Path(output_dir)
@@ -166,7 +170,7 @@ def train_rollout(output_dir, *, seed=42, mode='residual_v2', rounds=3, episodes
     agent.epsilon = 0.0
     history = {'method': METHOD, 'seed': seed, 'action_mode': mode, 'reward_version': agent.reward_fn.VERSION,
                'rounds': rounds, 'episodes_per_round': episodes, 'steps_per_episode': steps, 'horizon': horizon,
-               'samples': samples, 'epochs': epochs, 'temperature': temperature,
+               'samples': samples, 'hold': hold, 'epochs': epochs, 'temperature': temperature,
                'validation_episodes': validation_episodes, 'margins': list(MARGINS), 'history': []}
     all_states, all_values, best_key = [], [], None
     pool = get_context().Pool(workers) if workers > 1 else None
@@ -175,7 +179,7 @@ def train_rollout(output_dir, *, seed=42, mode='residual_v2', rounds=3, episodes
             started = time.monotonic()
             weights = None if round_index == 0 else {k: v.clone() for k, v in agent.policy_net.state_dict().items()}
             jobs = [(round_index * episodes + i, seed, mode, steps, horizon, samples, weights, agent.correction_margin,
-                     reward_version)
+                     reward_version, hold)
                     for i in range(episodes)]
             for states, values in (pool.map(collect_episode, jobs) if pool else map(collect_episode, jobs)):
                 all_states.append(states)

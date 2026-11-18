@@ -77,6 +77,11 @@ class RolloutTests(unittest.TestCase):
         same = RESIDUAL_ACTIONS.index(('hvac_mode', base.hvac_mode))
         self.assertEqual(values[0], values[same])
         self.assertGreater(np.ptp(values), 0)
+        held = correction_values(physics, DeviceState(), trace, 0, 'residual_v2', horizon=6, noise_seed=7, hold=3)
+        self.assertEqual(held[0], values[0])  # holding "no correction" is the base trajectory
+        self.assertFalse(np.array_equal(held, values))
+        with self.assertRaises(ValueError):
+            correction_values(physics, DeviceState(), trace, 0, 'residual_v2', horizon=6, hold=7)
 
     def test_soft_targets_and_distillation_fit_labels(self):
         values = np.array([[0.0, 1.0, 0.5], [2.0, 0.0, 0.0]], dtype=np.float32)
