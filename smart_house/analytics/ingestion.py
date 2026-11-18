@@ -12,7 +12,7 @@ from smart_house.environment.indoor_state import DeviceState
 from smart_house.ml.rule_layer import RuleLayer
 
 
-def top_corrections(agent, state, count=3):
+def top_corrections(agent, state, count=3, chosen=None):
     """The network's most preferred residual corrections with softmax confidence (residual modes only)."""
     import torch
     from smart_house.ml.controller import RESIDUAL_ACTIONS
@@ -22,8 +22,10 @@ def top_corrections(agent, state, count=3):
         logits = agent.policy_net(torch.as_tensor(state, dtype=torch.float32).unsqueeze(0))[0]
     probabilities = torch.softmax(logits, dim=0)
     ranked = torch.argsort(probabilities, descending=True)[:count].tolist()
+    if chosen is not None and chosen not in ranked:
+        ranked.append(chosen)  # always show what was actually applied
     return [{'action_index': index, 'field': RESIDUAL_ACTIONS[index][0], 'value': RESIDUAL_ACTIONS[index][1],
-             'confidence': round(float(probabilities[index]), 4)} for index in ranked]
+             'confidence': round(float(probabilities[index]), 4), 'chosen': index == chosen} for index in ranked]
 
 
 def recommend(agent, indoor, weather, weather_source='fixed', devices=None):
@@ -35,7 +37,8 @@ def recommend(agent, indoor, weather, weather_source='fixed', devices=None):
     recommended, changes = RuleLayer().apply_with_explanations(raw, indoor, weather)
     return {'timestamp': indoor.timestamp.isoformat(), 'indoor': asdict(indoor),
             'weather': asdict(weather), 'weather_source': weather_source, 'action_index': action,
-            'action_mode': agent.action_mode, 'top_corrections': top_corrections(agent, state),
+            'action_mode': agent.action_mode, 'top_corrections': top_corrections(agent, state, chosen=action),
+            'correction_margin': agent.correction_margin,
             'model_devices': asdict(raw), 'recommended_devices': asdict(recommended),
             'deterministic_devices': asdict(deterministic_devices(indoor, weather)),
             'explanations': [

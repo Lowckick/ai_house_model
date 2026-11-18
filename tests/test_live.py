@@ -49,7 +49,9 @@ class LiveTests(unittest.TestCase):
     def test_ingest_continuity_alert_onset_and_report(self):
         first = self.push(0, co2_ppm=900)
         self.assertEqual((first['sensor_id'], first['weather_source']), ('bedroom', 'fixed'))
-        self.assertEqual(len(first['top_corrections']), 3)
+        # Top three by confidence, plus the applied action if the confidence margin kept the base decision.
+        self.assertIn(len(first['top_corrections']), (3, 4))
+        self.assertEqual([c['action_index'] for c in first['top_corrections'] if c['chosen']], [first['action_index']])
         second = self.push(10, co2_ppm=1200)
         third = self.push(20, co2_ppm=1300)
         # The alert is reported once when it starts, not on every reading while it lasts.
