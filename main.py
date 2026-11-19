@@ -285,6 +285,13 @@ def cmd_adapt(args):
     print(f"Report: {args.output_dir}/adaptation.json")
 
 
+def cmd_figures(args):
+    """Regenerate the result figures in docs/images from the published reports."""
+    from smart_house.analytics.figures import generate
+    for path in generate(args.output):
+        print(path)
+
+
 def write_json(path, payload):
     import json
     from pathlib import Path
@@ -472,6 +479,9 @@ def main(argv=None):
     p_adapt.add_argument("--threads", type=int, default=2)
     p_adapt.add_argument("--output-dir", required=True, help="Reusing the directory resumes finished houses")
 
+    p_fig = sub.add_parser("figures", help="Regenerate result figures (docs/images) from the published reports")
+    p_fig.add_argument("--output", default=os.path.join(os.path.dirname(__file__), "docs", "images"))
+
     p_demo = sub.add_parser("demo", help="Quick 5-episode demo with dashboard")
     p_demo.add_argument("--no-api", action="store_true")
     p_demo.add_argument("--no-ui", action="store_true")
@@ -507,6 +517,8 @@ def main(argv=None):
         cmd_report(args)
     elif args.command == "screenshots":
         cmd_screenshots(args)
+    elif args.command == "figures":
+        cmd_figures(args)
     elif args.command == "demo":
         cmd_demo(args)
     else:
