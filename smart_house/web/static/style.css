@@ -1,0 +1,324 @@
+/* Smart House panel. Colours are tokens so the light and dark themes share every rule. */
+:root {
+  --bg: #f1f5f9;
+  --surface: #ffffff;
+  --surface-2: #f3f7fa;
+  --card: #f0f6f9;
+  --text: #17324d;
+  --muted: #526b7b;
+  --border: #d6e2ec;
+  --rule: #dde7ed;
+  --input-border: #b7cbd8;
+  --accent: #17617b;
+  --on-accent: #ffffff;
+  --secondary: #e5edf4;
+  --badge: #e6f1f4;
+  --ok: #176342;
+  --error: #a32727;
+  --focus: #edb949;
+  --header: #163a5f;
+  --header-muted: #c8deee;
+  --band: rgba(23, 99, 66, 0.12);
+  color-scheme: light;
+}
+
+/* Dark palette: automatic with the system setting, or chosen with the theme button. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1720;
+    --surface: #17212c;
+    --surface-2: #1d2935;
+    --card: #1f2c39;
+    --text: #e3edf5;
+    --muted: #9fb3c3;
+    --border: #2b3a48;
+    --rule: #2b3a48;
+    --input-border: #3a4c5c;
+    --accent: #3a9bbd;
+    --on-accent: #06131b;
+    --secondary: #263544;
+    --badge: #23394a;
+    --ok: #5fcf96;
+    --error: #ff8a80;
+    --focus: #f2c45a;
+    --header: #0b2238;
+    --header-muted: #9fc0d8;
+    --band: rgba(95, 207, 150, 0.14);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1720;
+  --surface: #17212c;
+  --surface-2: #1d2935;
+  --card: #1f2c39;
+  --text: #e3edf5;
+  --muted: #9fb3c3;
+  --border: #2b3a48;
+  --rule: #2b3a48;
+  --input-border: #3a4c5c;
+  --accent: #3a9bbd;
+  --on-accent: #06131b;
+  --secondary: #263544;
+  --badge: #23394a;
+  --ok: #5fcf96;
+  --error: #ff8a80;
+  --focus: #f2c45a;
+  --header: #0b2238;
+  --header-muted: #9fc0d8;
+  --band: rgba(95, 207, 150, 0.14);
+  color-scheme: dark;
+}
+
+:root {
+  font-family: system-ui, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+}
+
+/* Header and tabs */
+header {
+  background: var(--header);
+  color: #ffffff;
+  padding: 24px max(16px, calc((100vw - 1180px) / 2)) 0;
+}
+.header-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+header p {
+  color: var(--header-muted);
+  margin: 6px 0 0;
+}
+h1 {
+  font-size: 1.6rem;
+  margin: 0;
+}
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-top: 18px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.tabs button {
+  background: transparent;
+  color: var(--header-muted);
+  border-radius: 8px 8px 0 0;
+  padding: 10px 16px;
+  white-space: nowrap;
+  overflow-wrap: normal;
+}
+.tabs button[aria-selected="true"] {
+  background: var(--bg);
+  color: var(--text);
+  font-weight: 600;
+}
+.tabs button:hover:not([aria-selected="true"]) {
+  color: #ffffff;
+}
+
+/* Layout */
+main {
+  max-width: 1180px;
+  margin: 24px auto;
+  padding: 0 16px;
+}
+section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 22px;
+  margin-bottom: 20px;
+}
+h2 {
+  font-size: 1.2rem;
+  margin-top: 0;
+}
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.grid > * {
+  min-width: 0;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin: 14px 0;
+}
+.scroll {
+  overflow: auto;
+  max-height: 480px;
+}
+.messages {
+  max-height: 230px;
+  overflow: auto;
+}
+
+/* Controls */
+button,
+.download {
+  border: 0;
+  border-radius: 7px;
+  background: var(--accent);
+  color: var(--on-accent);
+  padding: 10px 15px;
+  cursor: pointer;
+  font: inherit;
+  display: inline-block;
+  text-decoration: none;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+button.secondary {
+  background: var(--secondary);
+  color: var(--text);
+}
+header button.secondary {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+button:disabled {
+  opacity: 0.45;
+  cursor: wait;
+}
+input,
+select,
+textarea {
+  min-width: 0;
+  font: inherit;
+  max-width: 100%;
+  padding: 8px;
+  border: 1px solid var(--input-border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+}
+textarea {
+  width: 100%;
+  min-height: 180px;
+  font-family: monospace;
+}
+label {
+  max-width: 100%;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin: 8px 12px 8px 0;
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+/* Text and data */
+.hint {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+#status {
+  white-space: pre-wrap;
+  min-height: 28px;
+  font-weight: 600;
+}
+#status.error,
+.fail {
+  color: var(--error);
+}
+#status.ok,
+.pass {
+  color: var(--ok);
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.9rem;
+}
+th,
+td {
+  padding: 10px;
+  border-bottom: 1px solid var(--rule);
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  background: var(--surface-2);
+  position: sticky;
+  top: 0;
+}
+ul {
+  padding-left: 22px;
+}
+.badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 5px;
+  background: var(--badge);
+}
+details {
+  margin: 6px 0;
+}
+pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 0.8rem;
+}
+canvas {
+  max-width: 100%;
+  width: 100%;
+  height: 230px;
+}
+a {
+  color: var(--accent);
+}
+code {
+  background: var(--surface-2);
+  padding: 1px 4px;
+  border-radius: 4px;
+}
+.cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.card {
+  background: var(--card);
+  padding: 14px;
+  border-radius: 8px;
+  min-width: 140px;
+}
+.card strong {
+  display: block;
+  font-size: 1.5rem;
+}
+
+@media (max-width: 760px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  section {
+    padding: 16px;
+  }
+  h1 {
+    font-size: 1.35rem;
+  }
+}

@@ -135,5 +135,24 @@ class LiveTests(unittest.TestCase):
         self.assertEqual(call('/api/live/kitchen/report?hours=0')[0], 400)
 
 
+    def test_panel_assets_and_strict_content_security_policy(self):
+        server = make_server('127.0.0.1', 0, MODEL, Path(self.tmp.name) / 'assets.db')
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        self.addCleanup(server.server_close)
+        self.addCleanup(server.shutdown)
+        base = f'http://127.0.0.1:{server.server_port}'
+        with urllib.request.urlopen(base + '/', timeout=30) as page:
+            html = page.read().decode()
+            policy = page.headers['Content-Security-Policy']
+        self.assertIn('/static/app.js', html)
+        self.assertNotIn('<style>', html)
+        self.assertNotIn('unsafe-inline', policy)
+        for path, kind in (('/static/app.js', 'text/javascript'), ('/static/style.css', 'text/css')):
+            with urllib.request.urlopen(base + path, timeout=30) as asset:
+                self.assertTrue(asset.headers['Content-Type'].startswith(kind))
+                self.assertGreater(len(asset.read()), 1000)
+        with self.assertRaises(urllib.error.HTTPError):
+            urllib.request.urlopen(base + '/static/../server.py', timeout=30)
+
 if __name__ == '__main__':
     unittest.main()

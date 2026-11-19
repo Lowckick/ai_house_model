@@ -22,6 +22,9 @@ def make_server(host, port, model, db, weather=None, live_token=None, notifier=N
     lab = ModelLab(model, service.history)
     live = LiveService(service, notifier)
     page = Path(__file__).with_name('index.html').read_bytes()
+    static_dir = Path(__file__).with_name('static')
+    static = {f'/static/{name}': ((static_dir / name).read_bytes(), kind) for name, kind in
+              (('app.js', 'text/javascript; charset=utf-8'), ('style.css', 'text/css; charset=utf-8'))}
 
     class Handler(BaseHTTPRequestHandler):
         """HTTP routes of the panel, history, lab and live sensor API."""
@@ -38,7 +41,8 @@ def make_server(host, port, model, db, weather=None, live_token=None, notifier=N
             self.send_header('Cache-Control', 'no-store')
             self.send_header('X-Content-Type-Options', 'nosniff')
             self.send_header('X-Frame-Options', 'DENY')
-            self.send_header('Content-Security-Policy', "default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; frame-ancestors 'none'; base-uri 'none'")
+            self.send_header('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; "
+                                                        "frame-ancestors 'none'; base-uri 'none'; form-action 'none'")
             self.end_headers()
             self.wfile.write(data)
 
@@ -61,6 +65,8 @@ def make_server(host, port, model, db, weather=None, live_token=None, notifier=N
                             sensor, since, int(query.get('limit', ['500'])[0]))})
                 if route == '/':
                     return self.respond(200, page, 'text/html; charset=utf-8')
+                if route in static:
+                    return self.respond(200, *static[route])
                 if route == '/api/lab/models':
                     return self.respond(200, {'models': lab.catalog()})
                 if route == '/api/lab/stats':
