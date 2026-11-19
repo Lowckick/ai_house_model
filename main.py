@@ -419,6 +419,8 @@ def main(argv=None):
     p_web = sub.add_parser("web", help="Start browser upload, history and evaluation interface")
     p_web.add_argument("--host", default="127.0.0.1")
     p_web.add_argument("--port", type=int, default=8000)
+    p_web.add_argument("--demo", action="store_true",
+                       help="Fill a separate demo database (data/user/demo.db) with simulated data, then serve it")
     p_web.add_argument("--weather", choices=("fixed", "open-meteo"), default="fixed",
                          help="Outdoor weather for readings: fixed 15 C assumption or Open-Meteo history (cached)")
     p_web.add_argument("--lat", type=float, default=50.4501, help="Latitude for --weather open-meteo (default Kyiv)")
@@ -480,6 +482,13 @@ def main(argv=None):
         try:
             if args.command == "web":
                 from smart_house.web.server import serve
+                if args.demo:
+                    from smart_house.analytics.demo import seed_demo
+                    args.db = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "user", "demo.db")
+                    print("Preparing demo data (simulated sensors, an import and an evaluation)...", flush=True)
+                    summary = seed_demo(args.db, args.model)
+                    print(f"Demo database: {summary['database']} · sensors: {', '.join(summary['sensors'])}", flush=True)
+                    print(f"Open http://{args.host}:{args.port}/ in a browser.", flush=True)
                 serve(args.host, args.port, args.model, args.db, weather_source(args))
             else:
                 {"import-data": cmd_import_data, "validate-data": cmd_validate_data, "evaluate": cmd_evaluate,
