@@ -8,16 +8,19 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from smart_house.analytics.comparison import compare_controllers, load_agent
+from smart_house.analytics.comparison import assumed_weather, compare_controllers, load_agent
 from smart_house.analytics.ingestion import ImportService
 from smart_house.environment.indoor_state import DeviceState, IndoorState
 from smart_house.environment.scenarios import make_scenario
 from smart_house.ml.agent import SmartHomeDQNAgent
-from smart_house.ml.controller import (RESIDUAL_ACTIONS, residual_devices, teacher_explanations,
-                                       tuned_deterministic_devices)
+from smart_house.ml.controller import (
+    RESIDUAL_ACTIONS,
+    residual_devices,
+    teacher_explanations,
+    tuned_deterministic_devices,
+)
 from smart_house.ml.experiments import run_rollout_experiment
 from smart_house.ml.rollout import collect_episode, correction_values, distill, soft_targets, train_rollout
-from smart_house.analytics.comparison import assumed_weather
 
 ROOT = Path(__file__).resolve().parents[1]
 torch.set_num_threads(2)

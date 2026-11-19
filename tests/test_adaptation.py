@@ -3,11 +3,16 @@ import json
 import random
 import tempfile
 import unittest
-from pathlib import Path
 
 from smart_house.environment.houses import HOUSES, house
-from smart_house.environment.indoor_state import (DeviceState, IndoorPhysicsSimulator, IndoorState, PhysicsParams,
-                                                  ScheduleOccupancy, set_physics)
+from smart_house.environment.indoor_state import (
+    DeviceState,
+    IndoorPhysicsSimulator,
+    IndoorState,
+    PhysicsParams,
+    ScheduleOccupancy,
+    set_physics,
+)
 from smart_house.environment.scenarios import make_scenario
 from smart_house.ml.adaptation import RuleParams, evaluate_policies, rule_grid, rule_policy, run_adaptation
 from smart_house.ml.controller import _tuned_devices
@@ -41,7 +46,7 @@ class AdaptationTests(unittest.TestCase):
         sim = ScheduleOccupancy(3)
         sim._rng.seed(5)
         days = []
-        for day in range(2):
+        for _day in range(2):
             totals = [sim.update(h, m)[1] for h in range(24) for m in (0, 30)]
             days.append(totals)
             # Presence changes only at leave/return times: few switches per day, home at night.

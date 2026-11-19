@@ -24,10 +24,13 @@ def make_server(host, port, model, db, weather=None, live_token=None, notifier=N
     page = Path(__file__).with_name('index.html').read_bytes()
 
     class Handler(BaseHTTPRequestHandler):
+        """HTTP routes of the panel, history, lab and live sensor API."""
         def log_message(self, format, *args):
+            """Send access logs to the logging module instead of stderr."""
             LOGGER.info(format, *args)
 
         def respond(self, status, payload, content_type='application/json; charset=utf-8'):
+            """Send JSON or HTML with security headers."""
             data = payload if isinstance(payload, bytes) else encode(payload).encode('utf-8')
             self.send_response(status)
             self.send_header('Content-Type', content_type)
@@ -40,6 +43,7 @@ def make_server(host, port, model, db, weather=None, live_token=None, notifier=N
             self.wfile.write(data)
 
         def do_GET(self):
+            """Page, history, lab and live sensor reads."""
             parts = urlsplit(self.path)
             route, query = parts.path, parse_qs(parts.query)
             try:
@@ -83,6 +87,7 @@ def make_server(host, port, model, db, weather=None, live_token=None, notifier=N
 
         def do_POST(self):
             # Browser requests must originate from this application; JSON prevents form POSTs.
+            """Validation, imports, evaluations, lab requests and live readings (JSON only, same origin)."""
             if (self.headers.get('Origin') not in (None, 'http://' + self.headers.get('Host', ''))
                     or self.headers.get('Sec-Fetch-Site') == 'cross-site'):
                 return self.respond(403, {'error': 'Cross-origin request rejected'})
@@ -134,7 +139,9 @@ def make_server(host, port, model, db, weather=None, live_token=None, notifier=N
                 self.respond(500, {'error': 'Не вдалося обробити запит. Перевірте модель і журнал сервера.'})
 
     class LabServer(ThreadingHTTPServer):
+        """Threaded server that also stops the lab worker when closed."""
         def server_close(self):
+            """Close the socket, then wait for and stop the lab worker."""
             super().server_close()
             lab.close()
 
@@ -150,14 +157,17 @@ def make_server(host, port, model, db, weather=None, live_token=None, notifier=N
 def notifier_from_env():
     """Telegram alerts when TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID are set; otherwise none."""
     import os
+
     from smart_house.analytics.live import telegram_notifier
     token, chat = os.environ.get('TELEGRAM_BOT_TOKEN'), os.environ.get('TELEGRAM_CHAT_ID')
     return telegram_notifier(token, chat) if token and chat else None
 
 
 def serve(host, port, model, db, weather=None):
+    """Run the web panel until interrupted; a token is required when listening beyond localhost."""
     import ipaddress
     import os
+
     import torch
     torch.set_num_threads(2)
     token = os.environ.get('SMART_HOUSE_LIVE_TOKEN') or None

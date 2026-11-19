@@ -6,8 +6,7 @@ from pathlib import Path
 
 from smart_house.analytics.calibration import DEFAULT_HEAT_LOSS, calibrate, load_params
 from smart_house.analytics.comparison import compare_controllers, load_agent
-from smart_house.environment.indoor_state import (DeviceState, IndoorPhysicsSimulator, PhysicsParams,
-                                                  set_physics)
+from smart_house.environment.indoor_state import DeviceState, IndoorPhysicsSimulator, PhysicsParams, set_physics
 from smart_house.environment.weather import SyntheticWeatherGenerator
 
 ROOT = Path(__file__).resolve().parents[1]

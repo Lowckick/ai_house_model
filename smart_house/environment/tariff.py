@@ -15,10 +15,12 @@ MEAN_PRICE_UAH = DAY_PRICE_UAH * ((24 - NIGHT_HOURS) + NIGHT_HOURS * NIGHT_COEFF
 
 
 def is_night(hour):
+    """True during the night tariff zone (23:00–07:00)."""
     return hour >= NIGHT_START_HOUR or hour < NIGHT_END_HOUR
 
 
 def price_uah_per_kwh(hour):
+    """Electricity price for an hour of the day."""
     return DAY_PRICE_UAH * (NIGHT_COEFFICIENT if is_night(hour) else 1.0)
 
 

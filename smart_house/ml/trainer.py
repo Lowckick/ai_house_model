@@ -3,21 +3,22 @@ Training loop for the Smart Home DQN agent.
 Runs episodes of simulated time and logs progress to SQLite.
 """
 
-import sqlite3
-import os
-import time
 import datetime
+import os
+import sqlite3
+import time
+
 import numpy as np
 
 from smart_house.environment.indoor_state import DeviceState
 from smart_house.ml.agent import SmartHomeDQNAgent, encode_state
 from smart_house.ml.rule_layer import RuleLayer
 
-
-DB_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "data", "training.db")
+DB_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "data", "legacy", "training.db")
 
 
 def init_db(db_path: str):
+    """Create the per-step and per-episode training tables."""
     os.makedirs(os.path.dirname(db_path), exist_ok=True)
     conn = sqlite3.connect(db_path)
     conn.execute("""
@@ -68,8 +69,9 @@ class Trainer:
                  validation_episodes=6, warmup_episodes=12, warmup_epochs=5,
                  steps_per_episode=144):
         import random
-        import torch
         from pathlib import Path
+
+        import torch
         seed = int(seed)
         if not 0 <= seed <= 2**32 - 21:
             raise ValueError("seed must be from 0 to 4294967275")
@@ -141,6 +143,7 @@ class Trainer:
                                   'teacher_action': '0 = no correction to deterministic controller'}
 
     def run_episode(self, episode):
+        """One RL training episode with logging; returns its summary."""
         from copy import deepcopy
         scenario = self._scenario(self.warmup_episodes + episode - 1)
         self.physics = scenario.environment()
@@ -192,6 +195,7 @@ class Trainer:
         return summary
 
     def validate(self, episode):
+        """Evaluate on validation scenarios and keep the best checkpoint."""
         from smart_house.analytics.comparison import compare_controllers
         result = compare_controllers(self.agent, episodes=self.validation_episodes,
                                      steps=144, seed=10000, split='validation')
@@ -217,6 +221,7 @@ class Trainer:
         os.replace(temporary, path)
 
     def train(self, n_episodes=200, verbose=True):
+        """Warmup, then RL episodes with periodic validation; saves best.pt and last.pt."""
         if n_episodes < 1:
             raise ValueError("n_episodes must be positive")
         self.history['episodes_requested'] = n_episodes

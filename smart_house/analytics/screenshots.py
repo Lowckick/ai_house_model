@@ -3,6 +3,7 @@ import os
 from typing import List
 
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
@@ -11,8 +12,7 @@ from smart_house.environment.indoor_state import DeviceState
 from smart_house.ml.agent import encode_state
 from smart_house.ml.trainer import Trainer
 
-
-SCREENSHOT_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "data", "screenshots")
+SCREENSHOT_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "data", "user", "screenshots")
 
 HVAC_LABELS = {0: "OFF", 1: "HEAT LOW", 2: "HEAT HIGH", 3: "COOL LOW", 4: "COOL HIGH"}
 CLEANER_LABELS = {0: "Docked", 1: "Cleaning", 2: "Returning"}
@@ -41,6 +41,7 @@ def _draw_panel(ax, x: float, y: float, w: float, h: float, title: str, lines: L
 
 
 def render_dashboard_snapshot(path: str, step: int, indoor, devices, weather, reward: float, epsilon: float, source: str) -> str:
+    """Render one dashboard frame (indoor, devices, weather, model state) to a PNG."""
     os.makedirs(os.path.dirname(path), exist_ok=True)
     fig = plt.figure(figsize=(16, 9), facecolor="#e9eef6")
     ax = fig.add_axes([0, 0, 1, 1])
@@ -89,12 +90,12 @@ def render_dashboard_snapshot(path: str, step: int, indoor, devices, weather, re
         for room in sorted(indoor.room_temps)
     ]
     ml_lines = [
-        f"Episode: demo snapshot",
+        "Episode: demo snapshot",
         f"Step: {step}/144 ({step * 10} min)",
         f"Reward: {reward:+.4f}",
         f"Epsilon: {epsilon:.4f}",
-        f"State dim: 54",
-        f"Actions: 1920",
+        "State dim: 54",
+        "Actions: 1920",
     ]
 
     _draw_panel(ax, 0.03, 0.53, 0.29, 0.35, "Outdoor Weather", weather_lines, "#d49b00")
@@ -118,9 +119,11 @@ def render_dashboard_snapshot(path: str, step: int, indoor, devices, weather, re
 
 
 def generate_simulation_screenshots(output_dir: str = None, count: int = 4, use_api_weather: bool = False, steps: int = 144, model_path=None) -> List[str]:
+    """Run a short simulation with a model and save dashboard PNGs at evenly spaced steps."""
     output_dir = output_dir or SCREENSHOT_DIR
     os.makedirs(output_dir, exist_ok=True)
     from types import SimpleNamespace
+
     from smart_house.analytics.comparison import load_agent
     from smart_house.environment.indoor_state import IndoorPhysicsSimulator
     from smart_house.environment.weather import WeatherProvider

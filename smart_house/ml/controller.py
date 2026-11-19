@@ -43,10 +43,12 @@ RESIDUAL_MODES = frozenset(BASE_CONTROLLERS)
 
 
 def deterministic_devices(indoor, weather):
+    """The simple threshold controller followed by the shared rules."""
     return RuleLayer().apply(_threshold_devices(indoor), indoor, weather)
 
 
 def tuned_deterministic_devices(indoor, weather):
+    """The staged (strengthened) controller followed by the shared rules."""
     return RuleLayer().apply(_tuned_devices(indoor), indoor, weather)
 
 
@@ -84,6 +86,7 @@ def teacher_explanations(indoor, weather, mode='residual_v1'):
 
 
 def residual_devices(index, indoor, weather, mode='residual_v1'):
+    """Base controller decision with residual correction ``index`` applied when allowed."""
     if not 0 <= index < len(RESIDUAL_ACTIONS):
         raise ValueError('Invalid residual action index')
     if mode not in RESIDUAL_MODES:

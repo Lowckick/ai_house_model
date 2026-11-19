@@ -6,7 +6,7 @@ import json
 import math
 from pathlib import Path
 
-from smart_house.environment.indoor_state import IndoorState, ROOMS
+from smart_house.environment.indoor_state import ROOMS, IndoorState
 
 # Indoor measurements: units are part of each field name.
 LIMITS = {
@@ -115,6 +115,7 @@ def inspect_readings(text, suffix):
 
 
 def load_readings(path):
+    """Read and validate a readings file; ValueError lists every invalid record."""
     path = Path(path)
     if path.stat().st_size > MAX_FILE_BYTES:
         raise ValueError('File exceeds 5 MiB')

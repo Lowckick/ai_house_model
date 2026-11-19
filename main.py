@@ -11,8 +11,8 @@ Usage:
 """
 
 import argparse
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -34,8 +34,10 @@ def apply_physics(args):
 def cmd_train(args):
     apply_physics(args)
     import datetime
-    import torch
     from pathlib import Path
+
+    import torch
+
     from smart_house.ml.experiments import run_experiment
     torch.set_num_threads(args.threads)
     seeds = args.seeds or [42]
@@ -68,14 +70,15 @@ def cmd_train(args):
 
 def cmd_simulate(args):
     import time
+
     from rich.console import Console
     from rich.live import Live
 
+    from smart_house.dashboard.display import LiveDashboard
+    from smart_house.environment.indoor_state import DeviceState, IndoorPhysicsSimulator
+    from smart_house.environment.weather import WeatherProvider
     from smart_house.ml.agent import encode_state
     from smart_house.ml.rule_layer import RuleLayer
-    from smart_house.environment.indoor_state import IndoorPhysicsSimulator, DeviceState
-    from smart_house.environment.weather import WeatherProvider
-    from smart_house.dashboard.display import LiveDashboard
 
     console = Console()
     console.print("[bold cyan]Starting Smart House Simulation (inference mode)...[/bold cyan]")
@@ -115,9 +118,10 @@ def cmd_simulate(args):
 
 
 def cmd_report(args):
+    import os
+
     from smart_house.analytics.reporter import generate_training_report, print_text_summary
     from smart_house.ml.trainer import DB_PATH
-    import os
 
     db = os.path.abspath(args.db or DB_PATH)
     print_text_summary(db)
@@ -149,6 +153,7 @@ def weather_source(args):
     if getattr(args, "weather", "fixed") != "open-meteo":
         return None
     from pathlib import Path
+
     from smart_house.environment.weather_archive import ArchiveWeather
     cache = Path(__file__).resolve().parent / "data" / "user" / "weather-cache.json"
     return ArchiveWeather(args.lat, args.lon, cache_path=cache)
@@ -157,6 +162,7 @@ def weather_source(args):
 def cmd_import_data(args):
     import json
     from pathlib import Path
+
     from smart_house.analytics.history import History
     from smart_house.analytics.ingestion import ImportService, ValidationError
     from smart_house.environment.readings import MAX_FILE_BYTES
@@ -184,6 +190,7 @@ def cmd_import_data(args):
 def cmd_mqtt(args):
     """Subscribe to sensor topics and log shadow-mode recommendations for every message."""
     import json
+
     from smart_house.analytics.history import History
     from smart_house.analytics.ingestion import ImportService, ValidationError
     from smart_house.analytics.live import LiveService, handle_mqtt_message
@@ -234,6 +241,7 @@ def cmd_shadow_report(args):
 def cmd_calibrate(args):
     """Fit simulator parameters to recorded readings (a live sensor or a readings file)."""
     from pathlib import Path
+
     from smart_house.analytics.calibration import calibrate, rows_from_records
     if Path(args.output).exists():
         raise ValueError("Output already exists; choose a new --output path")
@@ -241,6 +249,7 @@ def cmd_calibrate(args):
         raise ValueError("Give exactly one of --sensor (live readings) or --input (readings file)")
     if args.sensor:
         import datetime as dt
+
         from smart_house.analytics.history import History
         from smart_house.analytics.ingestion import ImportService
         from smart_house.analytics.live import LiveService
@@ -267,6 +276,7 @@ def cmd_calibrate(args):
 def cmd_adapt(args):
     """Adaptation study across house variants (see smart_house/ml/adaptation.py); resumable per house."""
     import torch
+
     from smart_house.ml.adaptation import run_adaptation
     torch.set_num_threads(args.threads)
     run_adaptation(args.output_dir, args.houses, seeds=args.seeds, rounds=args.rounds, episodes=args.rollout_episodes,
@@ -288,7 +298,8 @@ def write_json(path, payload):
 def cmd_validate_data(args):
     import json
     from pathlib import Path
-    from smart_house.environment.readings import inspect_readings, MAX_FILE_BYTES
+
+    from smart_house.environment.readings import MAX_FILE_BYTES, inspect_readings
     source = Path(args.input)
     if source.stat().st_size > MAX_FILE_BYTES:
         raise ValueError("File exceeds 5 MiB")
@@ -300,8 +311,9 @@ def cmd_validate_data(args):
 
 def cmd_evaluate(args):
     from pathlib import Path
-    from smart_house.analytics.ingestion import ImportService
+
     from smart_house.analytics.history import History
+    from smart_house.analytics.ingestion import ImportService
     if Path(args.output).exists():
         raise ValueError("Output already exists; choose a new --output path")
     apply_physics(args)
@@ -369,7 +381,7 @@ def main(argv=None):
 
     # report
     p_rep = sub.add_parser("report", help="Generate training analytics report")
-    p_rep.add_argument("--db", help="Training SQLite database; defaults to data/training.db")
+    p_rep.add_argument("--db", help="Training SQLite database; defaults to data/legacy/training.db (first DQN run)")
     p_rep.add_argument("--output", help="Directory for generated reports")
 
     # screenshots

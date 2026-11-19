@@ -9,6 +9,7 @@ from smart_house.ml.trainer import Trainer
 
 
 def selection_key(result):
+    """Validation ranking for DQN runs: fewer unsafe steps, comfort, energy, reward."""
     metrics = result['summary']['model']
     return (-metrics['unsafe_steps'], metrics['avg_comfort'], -metrics['energy_kwh'], metrics['total_reward'])
 
@@ -17,6 +18,7 @@ def run_experiment(output_dir, seeds=(42, 43, 44), episodes=200, *,
                    steps=144, warmup_episodes=12, warmup_epochs=5,
                    validation_interval=5, validation_episodes=6, test_episodes=12,
                    resume=None, reference_model=None, train_callback=None):
+    """Train DQN with several seeds, pick the winner on validation, then evaluate it on test."""
     if not seeds or len(seeds) > 10 or len(set(seeds)) != len(seeds):
         raise ValueError('Provide 1–10 distinct training seeds')
     if any(type(seed) is not int or not 0 <= seed <= 2**32 - 21 for seed in seeds):
@@ -70,7 +72,8 @@ def run_rollout_experiment(output_dir, seeds=(42, 43, 44), *, rounds=3, episodes
                            validation_episodes=12, test_episodes=20, test_seeds=(20000, 31000),
                            reference_models=(), reward_version='comfort_safety_v2', hold=1):
     """Rollout distillation per training seed; winner fixed on validation before any test run."""
-    from smart_house.ml.rollout import METHOD, selection_key as rollout_key, train_rollout
+    from smart_house.ml.rollout import METHOD, train_rollout
+    from smart_house.ml.rollout import selection_key as rollout_key
     if not seeds or len(seeds) > 10 or len(set(seeds)) != len(seeds):
         raise ValueError('Provide 1–10 distinct training seeds')
     if any(type(seed) is not int or not 0 <= seed <= 2**32 - 21 for seed in seeds):
@@ -93,6 +96,7 @@ def run_rollout_experiment(output_dir, seeds=(42, 43, 44), *, rounds=3, episodes
     selected_path = root / 'best.pt'
     shutil.copyfile(winner['checkpoint'], selected_path)
     from dataclasses import asdict
+
     from smart_house.environment.indoor_state import IndoorPhysicsSimulator
     report = {'protocol_version': 3, 'method': METHOD, 'reward_version': reward_version, 'hold': hold,
               'physics': asdict(IndoorPhysicsSimulator.PARAMS), 'selected_seed': winner['seed'],

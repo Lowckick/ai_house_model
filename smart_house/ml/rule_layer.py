@@ -4,7 +4,7 @@ Applies safety rules and smart heuristics ON TOP of the RL agent's decisions.
 This prevents physically dangerous or obviously wrong actions.
 """
 
-from smart_house.environment.indoor_state import DeviceState, IndoorState, ROOMS
+from smart_house.environment.indoor_state import ROOMS, DeviceState, IndoorState
 from smart_house.environment.weather import WeatherSnapshot
 
 

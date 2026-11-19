@@ -30,6 +30,7 @@ class TariffTests(unittest.TestCase):
     def test_reward_version_round_trips_and_overrides_scoring(self):
         import tempfile
         from pathlib import Path
+
         from smart_house.analytics.comparison import load_agent
         agent = SmartHomeDQNAgent(action_mode='residual_v2', device='cpu', reward_version='comfort_safety_tou_v3')
         with tempfile.TemporaryDirectory() as tmp:

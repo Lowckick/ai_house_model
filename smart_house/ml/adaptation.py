@@ -19,7 +19,7 @@ from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 from statistics import mean, stdev
 
-from smart_house.environment.indoor_state import DeviceState, IndoorPhysicsSimulator, set_physics
+from smart_house.environment.indoor_state import DeviceState, set_physics
 from smart_house.environment.scenarios import make_scenario
 from smart_house.environment.tariff import interval_hour, price_uah_per_kwh
 from smart_house.ml.agent import RewardFunction, encode_state
@@ -41,6 +41,7 @@ class RuleParams:
     clean_above: float = 15.0
 
     def devices(self, indoor):
+        """Device modes chosen by these thresholds before the shared rules."""
         d = _threshold_devices(indoor)
         t = indoor.temperature_c
         d.hvac_mode = (2 if t < self.heat_high_below else 1 if t < self.heat_low_below else
@@ -65,11 +66,13 @@ def rule_grid():
 
 
 def rule_policy(params):
+    """Closed-loop policy of the staged rules with the given thresholds."""
     rules = RuleLayer()
     return lambda indoor, weather, previous: rules.apply(params.devices(indoor), indoor, weather)
 
 
 def network_policy(agent):
+    """Closed-loop policy of a trained network (residual corrections plus rules)."""
     rules = RuleLayer()
 
     def act(indoor, weather, previous):

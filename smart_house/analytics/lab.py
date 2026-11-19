@@ -17,14 +17,17 @@ LOGGER = logging.getLogger(__name__)
 
 
 def now():
+    """Current UTC time as ISO 8601 text."""
     return dt.datetime.now(dt.timezone.utc).isoformat()
 
 
 class QueueFull(ValueError):
+    """The background evaluation queue is full; retry later."""
     pass
 
 
 class ModelLab:
+    """Model laboratory: manual tests with an LRU cache, background comparisons, ratings and statistics."""
     def __init__(self, model, history):
         self.history = history
         self.lock = RLock()
@@ -54,9 +57,11 @@ class ModelLab:
             db.execute("UPDATE lab_jobs SET status='interrupted', error='Server restarted; submit again', updated_at=? WHERE status IN ('queued','running')", (now(),))
 
     def close(self):
+        """Wait for running background jobs and stop the worker."""
         self.executor.shutdown(wait=True)
 
     def catalog(self):
+        """Models available to the lab (selected model, data/models, local experiments)."""
         return [{'id': key, 'name': str(path.relative_to(path.parents[1])) if path.parent.name == 'models'
                  else path.name, 'default': key == 'model-0'} for key, path in self.models.items()]
 
@@ -84,6 +89,7 @@ class ModelLab:
         return ident
 
     def predict(self, body):
+        """Recommendation of one model for one reading, cached by model, file signature and reading."""
         started = time.perf_counter()
         model_id = body.get('model_id', 'model-0')
         try:
@@ -113,6 +119,7 @@ class ModelLab:
             raise
 
     def submit(self, body):
+        """Queue a background comparison of up to three models; returns the job id."""
         ids = body.get('model_ids', ['model-0'])
         if not isinstance(ids, list) or not 1 <= len(ids) <= 3 or any(
                 not isinstance(i, str) or i not in self.models for i in ids) or len(set(ids)) != len(ids):
@@ -201,6 +208,7 @@ class ModelLab:
                        (status, now(), encode(result) if result else None, error, ident))
 
     def job(self, ident):
+        """Status and result of one background job."""
         with self.history.connect() as db:
             row = db.execute('SELECT * FROM lab_jobs WHERE id=?', (ident,)).fetchone()
         if row is None:
@@ -211,10 +219,12 @@ class ModelLab:
         return result
 
     def jobs(self):
+        """Recent background jobs."""
         with self.history.connect() as db:
             return [dict(r) for r in db.execute('SELECT id,created_at,status,error FROM lab_jobs ORDER BY created_at DESC LIMIT 50')]
 
     def rate(self, run_id, rating):
+        """Store a 1–5 user rating for a manual test."""
         if type(run_id) is not int or type(rating) is not int or not 1 <= rating <= 5:
             raise ValueError('run_id must be an integer; rating must be from 1 to 5')
         with self.history.connect() as db:
@@ -223,6 +233,7 @@ class ModelLab:
         return {'saved': True}
 
     def stats(self):
+        """Request counts, errors, cache hits, latencies and ratings of the lab."""
         with self.history.connect() as db:
             totals = dict(db.execute('SELECT count(*) requests, coalesce(sum(error IS NOT NULL),0) errors, '
                                      'coalesce(sum(cache_hit),0) cache_hits, avg(latency_ms) avg_latency_ms, avg(rating) avg_rating FROM lab_runs').fetchone())

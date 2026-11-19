@@ -1,8 +1,8 @@
 import datetime as dt
 import json
-from contextlib import closing
 import tempfile
 import unittest
+from contextlib import closing
 from pathlib import Path
 from unittest.mock import patch
 
@@ -10,9 +10,9 @@ import numpy as np
 import torch
 
 from smart_house.analytics.comparison import compare_controllers, load_agent
-from smart_house.environment.scenarios import make_scenario
 from smart_house.environment.indoor_state import DeviceState, IndoorState
-from smart_house.ml.agent import SmartHomeDQNAgent, RewardFunction, encode_state
+from smart_house.environment.scenarios import make_scenario
+from smart_house.ml.agent import RewardFunction, SmartHomeDQNAgent, encode_state
 from smart_house.ml.controller import RESIDUAL_ACTIONS, deterministic_devices
 from smart_house.ml.experiments import run_experiment
 from smart_house.ml.trainer import Trainer

@@ -108,6 +108,7 @@ def collect_episode(job):
 
 
 def soft_targets(values, temperature):
+    """Softmax of correction values at a temperature; one-hot when temperature is 0."""
     values = torch.as_tensor(values, dtype=torch.float32)
     if temperature <= 0:
         return nn.functional.one_hot(values.argmax(1), values.shape[1]).float()
@@ -178,6 +179,7 @@ def train_rollout(output_dir, *, seed=42, mode='residual_v2', rounds=3, episodes
                'validation_episodes': validation_episodes, 'margins': list(MARGINS), 'history': []}
     all_states, all_values, best_key = [], [], None
     from dataclasses import asdict
+
     from smart_house.environment.indoor_state import IndoorPhysicsSimulator, set_physics
     physics = IndoorPhysicsSimulator.PARAMS
     history['physics'] = asdict(physics)

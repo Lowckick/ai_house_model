@@ -37,6 +37,7 @@ COMFORT = {'temperature_c': (19.0, 25.0), 'humidity_pct': (35.0, 65.0), 'co2_ppm
 
 
 def alerts_for(indoor):
+    """Warning and critical alerts for one reading (critical matches the simulator unsafe limits)."""
     found = []
     for metric, level, predicate, message in ALERT_RULES:
         value = getattr(indoor, metric)
@@ -95,6 +96,7 @@ class LiveService:
         return json.loads(row[0]) if row else None
 
     def ingest(self, sensor_id, reading):
+        """Validate, recommend, alert and store one live reading of a sensor."""
         from smart_house.analytics.ingestion import ValidationError, recommend
         if not isinstance(sensor_id, str) or not SENSOR_ID.match(sensor_id):
             raise ValueError('sensor_id: 1-64 letters, digits, "_", "." or "-"')
@@ -139,12 +141,14 @@ class LiveService:
         return {'id': ident, 'sensor_id': sensor_id, **record}
 
     def sensors(self):
+        """Every sensor with its reading count and first/last timestamps."""
         with self.imports.history.connect() as db:
             return [dict(row) for row in db.execute(
                 'SELECT sensor_id, COUNT(*) AS count, MIN(timestamp) AS first, MAX(timestamp) AS last '
                 'FROM live_readings GROUP BY sensor_id ORDER BY sensor_id')]
 
     def readings(self, sensor_id, since=None, limit=500):
+        """Stored readings of a sensor in time order, optionally since a time."""
         if not 1 <= limit <= 5000:
             raise ValueError('limit must be from 1 to 5000')
         query, args = 'SELECT id, payload FROM live_readings WHERE sensor_id=?', [sensor_id]

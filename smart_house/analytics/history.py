@@ -7,10 +7,12 @@ from pathlib import Path
 
 
 def encode(value):
+    """Strict JSON for storage: UTF-8 text, no NaN or infinity."""
     return json.dumps(value, ensure_ascii=False, default=str, allow_nan=False)
 
 
 class History:
+    """SQLite history of imports, measurements and evaluations (one transaction per call)."""
     def __init__(self, path):
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
@@ -36,6 +38,7 @@ class History:
 
     @contextmanager
     def connect(self):
+        """Open a connection in a transaction that commits on success and always closes."""
         db = sqlite3.connect(self.path, timeout=15)
         db.row_factory = sqlite3.Row
         db.execute('PRAGMA foreign_keys=ON')
@@ -46,6 +49,7 @@ class History:
             db.close()
 
     def save_import(self, filename, file_digest, model_digest, report, results, weather=None):
+        """Store an import with all its readings atomically; returns the import id."""
         with self.connect() as db:
             cur = db.execute('INSERT INTO imports(created_at,filename,file_sha256,model_sha256,count,validation,weather) '
                              'VALUES(?,?,?,?,?,?,?)',
@@ -57,11 +61,13 @@ class History:
         return ident
 
     def list_imports(self):
+        """The 100 most recent imports (summary rows)."""
         with self.connect() as db:
             return [dict(row) for row in db.execute(
                 'SELECT id,created_at,filename,count FROM imports ORDER BY id DESC LIMIT 100')]
 
     def get_import(self, ident):
+        """One import with its validation report and readings; KeyError if missing."""
         with self.connect() as db:
             row = db.execute('SELECT * FROM imports WHERE id=?', (ident,)).fetchone()
             if row is None:
@@ -76,15 +82,18 @@ class History:
             return payload
 
     def save_evaluation(self, payload):
+        """Store an evaluation payload; returns its id."""
         with self.connect() as db:
             return db.execute('INSERT INTO evaluations(created_at,payload) VALUES(?,?)',
                               (dt.datetime.now(dt.timezone.utc).isoformat(), encode(payload))).lastrowid
 
     def list_evaluations(self):
+        """The 100 most recent evaluations (summary rows)."""
         with self.connect() as db:
             return [dict(row) for row in db.execute('SELECT id,created_at FROM evaluations ORDER BY id DESC LIMIT 100')]
 
     def get_evaluation(self, ident):
+        """One stored evaluation; KeyError if missing."""
         with self.connect() as db:
             row = db.execute('SELECT payload FROM evaluations WHERE id=?', (ident,)).fetchone()
             if row is None:

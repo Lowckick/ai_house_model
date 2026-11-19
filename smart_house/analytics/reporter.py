@@ -3,23 +3,24 @@ Analytics and reporting module.
 Reads training DB and generates plots + summary reports.
 """
 
+import datetime
 import os
 import sqlite3
-import datetime
 from typing import Optional
 
-import numpy as np
 import matplotlib
+import numpy as np
+
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
+import matplotlib.pyplot as plt
 
-
-DB_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "data", "training.db")
-REPORT_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "data", "reports")
+DB_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "data", "legacy", "training.db")
+REPORT_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "data", "user", "reports")
 
 
 def load_episode_summaries(db_path: str) -> list:
+    """Per-episode totals from a training database (empty if it does not exist)."""
     if not os.path.exists(db_path):
         return []
     conn = sqlite3.connect(db_path)
@@ -31,6 +32,7 @@ def load_episode_summaries(db_path: str) -> list:
 
 
 def load_step_data(db_path: str, episode: Optional[int] = None) -> list:
+    """Per-step values from a training database, optionally for one episode."""
     if not os.path.exists(db_path):
         return []
     conn = sqlite3.connect(db_path)
@@ -65,6 +67,7 @@ def generate_training_report(db_path: str = DB_PATH, output_dir: str = REPORT_DI
 
     # Smooth with rolling average
     def smooth(data, w=10):
+        """Moving average used to make training curves readable."""
         if len(data) < w:
             return data
         return np.convolve(data, np.ones(w) / w, mode="valid").tolist()
@@ -168,7 +171,7 @@ def print_text_summary(db_path: str = DB_PATH):
     avg_comfort = sum(r[2] for r in last10) / len(last10)
     avg_power = sum(r[3] for r in last10) / len(last10)
 
-    print(f"  Last 10 episodes:")
+    print("  Last 10 episodes:")
     print(f"    Avg reward:  {avg_reward:+.2f}")
     print(f"    Avg comfort: {avg_comfort:.1f}%")
     print(f"    Avg power:   {avg_power:.3f} kW")

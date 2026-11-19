@@ -4,14 +4,15 @@ from pathlib import Path
 from statistics import mean, stdev
 
 from smart_house.environment.indoor_state import DeviceState
+from smart_house.environment.scenarios import make_scenario
 from smart_house.environment.weather import WeatherSnapshot
 from smart_house.ml.agent import SmartHomeDQNAgent, encode_state
-from smart_house.ml.rule_layer import RuleLayer
 from smart_house.ml.controller import deterministic_devices, tuned_deterministic_devices
-from smart_house.environment.scenarios import make_scenario
+from smart_house.ml.rule_layer import RuleLayer
 
 
 def load_agent(model_path):
+    """Load a trusted checkpoint for greedy inference (epsilon 0, eval mode)."""
     path = Path(model_path)
     if not path.is_file():
         raise ValueError(f'Model not found: {path}')
@@ -23,6 +24,7 @@ def load_agent(model_path):
 
 
 def model_digest(path):
+    """SHA-256 of a checkpoint file, recorded with every result."""
     digest = hashlib.sha256()
     with Path(path).open('rb') as stream:
         for block in iter(lambda: stream.read(1024 * 1024), b''):
@@ -31,12 +33,14 @@ def model_digest(path):
 
 
 def assumed_weather(indoor):
+    """The fixed outdoor weather used when real weather is unknown (15 °C, 60 %, calm)."""
     return WeatherSnapshot(indoor.timestamp, 15.0, 60.0, 0.0, 50.0,
                            0.0, 0.0, 6 <= indoor.timestamp.hour < 20, 'cloudy')
 
 
 def _physics():
     from dataclasses import asdict
+
     from smart_house.environment.indoor_state import IndoorPhysicsSimulator
     return asdict(IndoorPhysicsSimulator.PARAMS)
 

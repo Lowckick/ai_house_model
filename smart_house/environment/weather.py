@@ -3,13 +3,13 @@ Weather data module.
 Tries Open-Meteo (free, no key needed) and falls back to random simulation.
 """
 
+import datetime
 import math
 import random
-import datetime
-import requests
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Optional
 
+import requests
 
 # ---------------------------------------------------------------------------
 # Data structures
@@ -17,6 +17,7 @@ from typing import Optional
 
 @dataclass
 class WeatherSnapshot:
+    """Outdoor conditions at one time."""
     timestamp: datetime.datetime
     temperature_c: float        # outdoor temp in Celsius
     humidity_pct: float         # outdoor relative humidity 0-100
@@ -143,6 +144,7 @@ class SyntheticWeatherGenerator:
         self._step = 0
 
     def next(self, hour_of_day: Optional[int] = None, day_of_year: Optional[int] = None) -> WeatherSnapshot:
+        """Next synthetic weather snapshot for the given hour and day of the year."""
         now = datetime.datetime.now()
         h = hour_of_day if hour_of_day is not None else now.hour
         doy = day_of_year if day_of_year is not None else now.timetuple().tm_yday
@@ -224,6 +226,7 @@ class WeatherProvider:
         self._api_available = True
 
     def get(self) -> WeatherSnapshot:
+        """Current weather: Open-Meteo when enabled and reachable, otherwise synthetic."""
         if self._use_api and self._api_available:
             now = datetime.datetime.now()
             if (self._cache is None or
@@ -242,6 +245,7 @@ class WeatherProvider:
 
     @property
     def source(self) -> str:
+        """Human-readable name of the weather source in use."""
         if self._use_api and self._api_available and self._cache is not None:
             return "Open-Meteo API"
         return "Synthetic Generator"

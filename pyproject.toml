@@ -1,0 +1,43 @@
+[project]
+name = "smart-house-ai"
+version = "3.0.0"
+description = "Агентна система керування мікрокліматом розумного будинку: гібридна нейромережна політика, живі датчики в тіньовому режимі, калібрування симулятора"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Ярослав Головко" }]
+requires-python = ">=3.11"
+dependencies = [
+    "torch>=2.0.0",
+    "numpy>=1.24.0",
+    "requests>=2.31.0",
+    "rich>=13.0.0",
+    "matplotlib>=3.7.0",
+]
+
+[project.optional-dependencies]
+mqtt = ["paho-mqtt>=2.0"]
+dev = ["ruff>=0.6"]
+
+[project.urls]
+Repository = "https://github.com/Lowckick/ai_house_model"
+
+# The project runs from the repository (python main.py ...); no package build is configured.
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+extend-exclude = ["docs/master-thesis"]
+
+[tool.ruff.lint]
+# Pyflakes, pycodestyle errors/warnings, import sorting and a few bug-prone patterns.
+select = ["F", "E", "W", "I", "B"]
+ignore = [
+    "E501",   # long lines are allowed where formulas or tables read better on one line
+    "E701",   # compact one-line ifs in the original physics code
+    "E731",   # small lambdas assigned to names
+    "B905",   # zip() without strict= (Python 3.10+ style choice)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"main.py" = ["E402"]   # imports after sys.path setup and lazy imports per command

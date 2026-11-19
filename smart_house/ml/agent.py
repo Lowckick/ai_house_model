@@ -6,19 +6,19 @@ Reward: comfort score + energy penalty + cleanliness bonus
 """
 
 import math
-import random
 import os
+import random
+from collections import deque
+from dataclasses import dataclass
+from typing import List, Optional
+
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from collections import deque
-from dataclasses import dataclass
-from typing import List, Tuple, Optional
 
-from smart_house.environment.indoor_state import IndoorState, DeviceState
+from smart_house.environment.indoor_state import DeviceState, IndoorState
 from smart_house.environment.weather import WeatherSnapshot
-
 
 # ---------------------------------------------------------------------------
 # Action encoding
@@ -151,6 +151,7 @@ class DQNNetwork(nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Q-values (or policy logits) for a batch of states."""
         shared = self.shared(x)
         value = self.value_stream(shared)
         advantage = self.advantage_stream(shared)
@@ -165,6 +166,7 @@ class DQNNetwork(nn.Module):
 
 @dataclass
 class Transition:
+    """One replay-buffer experience."""
     state: np.ndarray
     action: int
     reward: float
@@ -181,9 +183,11 @@ class PrioritizedReplayBuffer:
         self._buf: deque = deque(maxlen=capacity)
 
     def push(self, t: Transition):
+        """Append a transition, dropping the oldest when full."""
         self._buf.append(t)
 
     def sample(self, batch_size: int) -> List[Transition]:
+        """Uniform random batch of transitions."""
         return self._rng.sample(self._buf, min(batch_size, len(self._buf)))
 
     def __len__(self) -> int:
@@ -220,6 +224,7 @@ class RewardFunction:
 
     def compute(self, indoor: IndoorState, devices: DeviceState,
                  prev_devices: Optional[DeviceState] = None) -> float:
+        """Reward of the state reached after applying ``devices``."""
         reward = 0.0
 
         # Comfort: scaled comfort score to [-1, +1]
@@ -238,8 +243,8 @@ class RewardFunction:
         # Energy penalty; with a tariff, the same daily mean weight split into day/night prices.
         energy_weight = self.ENERGY_WEIGHT
         if self.tariff:
-            from smart_house.environment.tariff import interval_hour, price_weight
             from smart_house.environment.indoor_state import IndoorPhysicsSimulator
+            from smart_house.environment.tariff import interval_hour, price_weight
             energy_weight *= price_weight(interval_hour(indoor.timestamp, IndoorPhysicsSimulator.TIMESTEP_MINUTES))
         reward -= energy_weight * indoor.power_consumption_kw
 
@@ -315,6 +320,7 @@ class SmartHomeDQNAgent:
         self.episode_rewards: List[float] = []
 
     def select_action(self, state: np.ndarray) -> int:
+        """Epsilon-greedy action; residual corrections below the confidence margin keep the base decision."""
         if self.epsilon > 0 and self._rng.random() < self.epsilon:
             return self._rng.randrange(self.n_actions)
         with torch.no_grad():
@@ -326,9 +332,11 @@ class SmartHomeDQNAgent:
             return action
 
     def store(self, state, action, reward, next_state, done, demonstration=False):
+        """Add a transition to the replay buffer."""
         self.replay.push(Transition(state, action, reward, next_state, done, demonstration))
 
     def learn(self) -> Optional[float]:
+        """One Double DQN update from a replay batch; returns the loss or None while warming up."""
         if len(self.replay) < self.BATCH_SIZE:
             return None
 
@@ -368,6 +376,7 @@ class SmartHomeDQNAgent:
         return loss_val
 
     def decode_action(self, index, current, indoor, weather):
+        """Device modes for an action index (residual correction or legacy composite action)."""
         if self.residual:
             from smart_house.ml.controller import residual_devices
             return residual_devices(index, indoor, weather, self.action_mode)
@@ -394,6 +403,7 @@ class SmartHomeDQNAgent:
         return losses
 
     def save(self, path: str, metadata=None):
+        """Atomically save weights, optimizer, action semantics, reward version and metadata."""
         from pathlib import Path
         path = Path(path)
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -411,6 +421,7 @@ class SmartHomeDQNAgent:
         os.replace(temporary, path)
 
     def load(self, path: str):
+        """Load a checkpoint, switching action mode and reward version to the stored ones."""
         if not os.path.exists(path):
             return
         checkpoint = torch.load(path, map_location=self.device, weights_only=True)

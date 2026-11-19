@@ -3,26 +3,21 @@ Rich terminal dashboard for the Smart House ML system.
 Displays real-time indoor/outdoor state, device status, and ML metrics.
 """
 
-import os
-import time
 import datetime
-import sqlite3
 import threading
-from typing import Optional, List
+import time
+from typing import List, Optional
 
+from rich import box
 from rich.console import Console
 from rich.layout import Layout
 from rich.live import Live
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
-from rich.progress import Progress, BarColumn, TextColumn, SpinnerColumn
-from rich.columns import Columns
-from rich import box
 
-from smart_house.environment.indoor_state import DeviceState, IndoorState, ROOMS
+from smart_house.environment.indoor_state import ROOMS, DeviceState, IndoorState
 from smart_house.environment.weather import WeatherSnapshot
-
 
 console = Console()
 
@@ -35,6 +30,7 @@ VENT_LABELS = {0: "OFF", 1: "Low", 2: "Med", 3: "High"}
 
 # Color thresholds
 def temp_color(t: float) -> str:
+    """Rich colour for a temperature value."""
     if t < 16: return "blue"
     if t < 19: return "cyan"
     if t <= 25: return "green"
@@ -42,11 +38,13 @@ def temp_color(t: float) -> str:
     return "red"
 
 def co2_color(co2: float) -> str:
+    """Rich colour for a CO₂ value."""
     if co2 < 800: return "green"
     if co2 < 1200: return "yellow"
     return "red"
 
 def air_quality_color(aqi: float) -> str:
+    """Rich colour for an air quality index."""
     if aqi < 50: return "bright_green"
     if aqi < 100: return "green"
     if aqi < 150: return "yellow"
@@ -54,18 +52,21 @@ def air_quality_color(aqi: float) -> str:
     return "red"
 
 def comfort_color(score: float) -> str:
+    """Rich colour for a comfort score."""
     if score >= 80: return "bright_green"
     if score >= 60: return "green"
     if score >= 40: return "yellow"
     return "red"
 
 def dirt_color(d: float) -> str:
+    """Rich colour for a dirt level."""
     if d < 20: return "green"
     if d < 50: return "yellow"
     return "red"
 
 
 def bar(value: float, maximum: float = 100.0, width: int = 15) -> str:
+    """Text progress bar for a value within a range."""
     filled = int(min(1.0, value / maximum) * width)
     return "█" * filled + "░" * (width - filled)
 
@@ -75,6 +76,7 @@ def bar(value: float, maximum: float = 100.0, width: int = 15) -> str:
 # ---------------------------------------------------------------------------
 
 def build_weather_panel(weather: WeatherSnapshot) -> Panel:
+    """Panel with the current outdoor weather."""
     table = Table(box=box.SIMPLE, show_header=False, padding=(0, 1))
     table.add_column("Key", style="bold", width=18)
     table.add_column("Value")
@@ -99,6 +101,7 @@ def build_weather_panel(weather: WeatherSnapshot) -> Panel:
 
 
 def build_indoor_panel(indoor: IndoorState) -> Panel:
+    """Panel with indoor conditions."""
     table = Table(box=box.SIMPLE, show_header=False, padding=(0, 1))
     table.add_column("Key", style="bold", width=18)
     table.add_column("Value")
@@ -135,6 +138,7 @@ def build_indoor_panel(indoor: IndoorState) -> Panel:
 
 
 def build_rooms_panel(indoor: IndoorState) -> Panel:
+    """Per-room temperature, light and occupancy table."""
     table = Table(box=box.SIMPLE, show_header=True, padding=(0, 1))
     table.add_column("Room", style="bold", width=14)
     table.add_column("Temp °C", width=9)
@@ -163,6 +167,7 @@ def build_rooms_panel(indoor: IndoorState) -> Panel:
 
 
 def build_devices_panel(devices: DeviceState) -> Panel:
+    """Panel with device modes."""
     table = Table(box=box.SIMPLE, show_header=False, padding=(0, 1))
     table.add_column("Device", style="bold", width=18)
     table.add_column("Status")
@@ -194,6 +199,7 @@ def build_devices_panel(devices: DeviceState) -> Panel:
 
 def build_ml_panel(episode: int, step: int, reward: float,
                    epsilon: float, recent_losses: List[float]) -> Panel:
+    """Panel with training progress: episode, reward, epsilon, loss."""
     table = Table(box=box.SIMPLE, show_header=False, padding=(0, 1))
     table.add_column("Key", style="bold", width=18)
     table.add_column("Value")
@@ -239,6 +245,7 @@ class LiveDashboard:
     def update(self, episode: int, step: int, indoor: IndoorState,
                devices: DeviceState, weather: WeatherSnapshot,
                reward: float, epsilon: float = 1.0, loss: Optional[float] = None):
+        """Store the latest simulation values for the next refresh."""
         with self._lock:
             self._indoor = indoor
             self._devices = devices
@@ -251,6 +258,7 @@ class LiveDashboard:
                 self._losses.append(loss)
 
     def build_layout(self) -> Layout:
+        """Full-screen layout combining all panels."""
         with self._lock:
             indoor = self._indoor
             weather = self._weather
@@ -308,8 +316,6 @@ class LiveDashboard:
 
     def run_with_trainer(self, trainer, n_episodes: int = 200):
         """Attach dashboard to a trainer and run."""
-
-        last_loss = [None]
 
         def callback(ep, step, indoor, devices, weather, reward):
             loss = trainer.agent.losses[-1] if trainer.agent.losses else None

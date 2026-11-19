@@ -4,17 +4,24 @@ from dataclasses import asdict
 from pathlib import Path
 from threading import Lock
 
-from smart_house.analytics.comparison import assumed_weather, load_agent, model_digest, deterministic_devices, compare_controllers
+from smart_house.analytics.comparison import (
+    assumed_weather,
+    compare_controllers,
+    deterministic_devices,
+    load_agent,
+    model_digest,
+)
+from smart_house.environment.indoor_state import DeviceState
 from smart_house.environment.readings import inspect_readings
 from smart_house.ml.agent import encode_state
 from smart_house.ml.controller import teacher_explanations
-from smart_house.environment.indoor_state import DeviceState
 from smart_house.ml.rule_layer import RuleLayer
 
 
 def top_corrections(agent, state, count=3, chosen=None):
     """The network's most preferred residual corrections with softmax confidence (residual modes only)."""
     import torch
+
     from smart_house.ml.controller import RESIDUAL_ACTIONS
     if not agent.residual:
         return []
@@ -51,12 +58,14 @@ def recommend(agent, indoor, weather, weather_source='fixed', devices=None):
 
 
 class ValidationError(ValueError):
+    """Raised with the full validation report when a file or reading is invalid."""
     def __init__(self, report):
         self.report = report
         super().__init__('File validation failed')
 
 
 class ImportService:
+    """Validates readings, produces recommendations with explanations and stores imports."""
     def __init__(self, model_path, history, weather=None):
         """``weather``: an ``ArchiveWeather`` for real hourly weather; None keeps the fixed assumption."""
         self.model_path, self.history, self.weather = Path(model_path), history, weather
@@ -71,6 +80,7 @@ class ImportService:
         return self._agent
 
     def analyze_text(self, filename, text):
+        """Validate a file and return recommendations for every reading without storing them."""
         states, report = inspect_readings(text, Path(filename).suffix)
         if not report['valid']:
             raise ValidationError(report)
@@ -92,6 +102,7 @@ class ImportService:
                 'model_sha256': digest, 'weather': weather_summary}
 
     def import_text(self, filename, text):
+        """Analyse a file and store readings and recommendations in the history."""
         result = self.analyze_text(filename, text)
         ident = self.history.save_import(Path(filename).name, hashlib.sha256(text.encode('utf-8')).hexdigest(),
                                          result['model_sha256'], result['validation'], result['readings'],
@@ -99,6 +110,7 @@ class ImportService:
         return self.history.get_import(ident)
 
     def evaluate(self, episodes=5, steps=144, seed=42):
+        """Paired simulated comparison of the model with the simple controller, stored in the history."""
         with self._lock:
             payload = compare_controllers(self._load(), episodes, steps, seed)
             payload.update({'model': str(self.model_path), 'model_sha256': self._digest})

@@ -10,14 +10,13 @@ from unittest.mock import patch
 
 import torch
 
-from smart_house.analytics.comparison import compare_controllers, load_agent, deterministic_devices
+from smart_house.analytics.comparison import assumed_weather, compare_controllers, deterministic_devices, load_agent
 from smart_house.analytics.history import History
 from smart_house.analytics.ingestion import ImportService, ValidationError
-from smart_house.environment.indoor_state import IndoorState, DeviceState, IndoorPhysicsSimulator
+from smart_house.environment.indoor_state import DeviceState, IndoorPhysicsSimulator, IndoorState
 from smart_house.environment.readings import inspect_readings
 from smart_house.ml.agent import action_index_to_devices
 from smart_house.ml.rule_layer import RuleLayer
-from smart_house.analytics.comparison import assumed_weather
 from smart_house.web.server import make_server
 
 ROOT = Path(__file__).resolve().parents[1]

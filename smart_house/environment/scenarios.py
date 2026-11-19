@@ -2,7 +2,7 @@
 import datetime as dt
 import hashlib
 import random
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 
 from smart_house.environment.indoor_state import IndoorPhysicsSimulator
 from smart_house.environment.weather import SyntheticWeatherGenerator
@@ -10,6 +10,7 @@ from smart_house.environment.weather import SyntheticWeatherGenerator
 
 @dataclass(frozen=True)
 class Scenario:
+    """A reproducible daily scenario: start time, occupants, initial indoor state and weather offset."""
     split: str
     index: int
     seed: int
@@ -23,9 +24,11 @@ class Scenario:
     weather_offset_c: float
 
     def describe(self):
+        """JSON-safe description stored in reports."""
         return {**asdict(self), 'start': self.start.isoformat()}
 
     def environment(self):
+        """A simulator positioned at the scenario start."""
         physics = IndoorPhysicsSimulator(n_occupants=self.occupants, seed=self.seed, start_time=self.start)
         state = physics.reset()
         for field in ('temperature_c', 'humidity_pct', 'co2_ppm', 'pm25_ugm3', 'dirt_level'):
@@ -36,6 +39,7 @@ class Scenario:
         return physics
 
     def weather_trace(self, steps):
+        """Deterministic seasonal weather for ``steps`` 10-minute steps."""
         generator = SyntheticWeatherGenerator(seed=self.seed)
         trace = []
         for step in range(steps):
@@ -48,6 +52,7 @@ class Scenario:
 
 
 def make_scenario(split, index, seed=42):
+    """Scenario ``index`` of a split; splits use disjoint years and seeds."""
     if split not in {'train', 'validation', 'test'}:
         raise ValueError('Unknown scenario split')
     digest = hashlib.sha256(f'{split}:{seed}:{index}'.encode()).digest()

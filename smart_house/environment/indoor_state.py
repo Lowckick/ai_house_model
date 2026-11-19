@@ -4,14 +4,12 @@ Models realistic physics of how indoor conditions evolve based on
 outdoor weather, device states, occupancy and time.
 """
 
-import math
-import random
 import datetime
+import random
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
 from smart_house.environment.weather import WeatherSnapshot
-
 
 # ---------------------------------------------------------------------------
 # Device action space (what the RL agent can control)
@@ -48,6 +46,7 @@ class DeviceState:
     })
 
     def to_vector(self) -> List[float]:
+        """Numeric features in a fixed order for the network."""
         v = [float(self.hvac_mode)]
         for room in sorted(self.lights):
             v.append(float(self.lights[room]))
@@ -93,6 +92,7 @@ class PhysicsParams:
     source: str = 'default'
 
     def validate(self):
+        """Check parameter ranges; returns self so it can be chained."""
         checks = {'heat_loss_per_h': (0.0, 2.0), 'co2_per_person_ppm_h': (0.0, 5000.0),
                   'co2_infiltration_per_h': (0.0, 10.0), 'humidity_exchange_per_h': (0.0, 5.0)}
         checks['hvac_lag_h'] = (0.05, 12.0)
@@ -173,6 +173,7 @@ class IndoorState:
     comfort_score: float = 50.0
 
     def to_vector(self) -> List[float]:
+        """Numeric features in a fixed order for the network."""
         v = [
             self.temperature_c / 40.0,
             self.humidity_pct / 100.0,
@@ -264,6 +265,7 @@ class ScheduleOccupancy(OccupancySimulator):
                      (self._rng.gauss(8.0, 0.7), self._rng.gauss(18.0, 1.2)) for _ in range(self._n)]
 
     def update(self, hour: int, minute: int = 0) -> tuple:
+        """Presence for the given time: (occupancy per room, total occupants, activity)."""
         if self.plan is None or hour < self._last_hour:
             self._new_day()
         self._last_hour = hour
@@ -330,6 +332,7 @@ class IndoorPhysicsSimulator:
         self._cleaning_progress = 0.0
 
     def reset(self) -> IndoorState:
+        """Start a new episode from randomised plausible conditions."""
         self.state = IndoorState(
             timestamp=self._start_time or datetime.datetime.now(),
             temperature_c=self._rng.uniform(18.0, 24.0),
@@ -344,6 +347,7 @@ class IndoorPhysicsSimulator:
         return self.state
 
     def step(self, weather: WeatherSnapshot, devices: DeviceState) -> IndoorState:
+        """Advance 10 minutes under the given weather and device modes; returns the new state."""
         dt = self.TIMESTEP_MINUTES / 60.0  # hours
         h = self.state.timestamp.hour if self._start_time else datetime.datetime.now().hour
 
@@ -428,7 +432,7 @@ class IndoorPhysicsSimulator:
         self.state.temperature_c = round(max(-5.0, min(40.0, new_temp)), 2)
 
         # Per-room variation
-        for room, cfg in ROOMS.items():
+        for room in ROOMS:
             base = self.state.temperature_c
             variation = self._rng.gauss(0, 0.3)
             occupied_bonus = 0.3 if self.state.occupancy.get(room) else 0.0

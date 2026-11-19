@@ -23,6 +23,7 @@ HOUSES = {
 
 
 def house(name):
+    """PhysicsParams of a named house; ValueError for an unknown name."""
     if name not in HOUSES:
         raise ValueError(f"Unknown house {name!r}; choose from: {', '.join(HOUSES)}")
     return HOUSES[name]
